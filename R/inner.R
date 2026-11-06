@@ -21,7 +21,7 @@ density_hessian <- function(model, theta) {
 # autodiff Hessians when forward mode through the model is slow (35x at 645
 # parameters in the renewal model), and is accurate enough for Newton steps and
 # for L during optimisation.
-gradient_hessian <- function(model, theta, inner, h = 1e-5) {
+gradient_hessian <- function(model, theta, inner, h = 1e-7) {
   ev <- density_gradient(model, theta)
   if (is.null(ev)) return(NULL)
   N <- length(theta)

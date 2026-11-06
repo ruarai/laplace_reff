@@ -3,3 +3,4 @@ laplace_reff.Rproj
 *.so
 *.o
 *.hpp
+.Rhistory

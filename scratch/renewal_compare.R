@@ -5,10 +5,10 @@ devtools::load_all()
 
 set.seed(1)
 
-n <- 365
+n <- 365 * 2
 g <- 4
 d <- 8
-seed_infections <- 50
+seed_infections <- 5
 phi_true <- 20
 
 gen <- dgamma(1:g, 3, 0.6)
@@ -16,7 +16,9 @@ gen <- gen / sum(gen)
 delay <- dgamma(0:(d - 1) + 0.5, 3, 0.8)
 delay <- delay / sum(delay)
 
-R_true <- 1.0 + 0.2 * sin((1:n) / 10)
+R_true <- 1.0 + 0.2 * sin((1:n) / 10) + (1:n) * 0.00002
+
+plot(R_true)
 
 s <- max(g, d)
 inf <- rep(seed_infections, s + n)
@@ -27,8 +29,10 @@ for (t in 1:n) {
 }
 y <- rnbinom(n, mu = cases, size = phi_true)
 
+plot(y, type = "l")
+
 data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
-             m = 120, c = 1.25)
+             m = round(n / 20), c = 1.25)
 
 # Fit ---------------------------------------------------------------------
 
@@ -47,7 +51,8 @@ conditional |>
   ggplot(aes(x = t, y = cases)) +
   fastribbon::stat_fastribbon(geom = "ribbon") +
   
-  geom_line(data = tibble(t = 1:length(y), cases = y)) +
+  geom_line(data = tibble(t = 1:length(y), cases = y),
+            alpha = 0.3) +
   
   scale_fill_brewer() +
   
@@ -70,7 +75,7 @@ stan <- cmdstanr::cmdstan_model("inst/model_renewal.stan", dir = tempdir())
 hmc_time <- system.time({
   hmc <- stan$sample(data = data, chains = 4, parallel_chains = 4,
                      iter_warmup = 1000, iter_sampling = 1000, seed = 1,
-                     adapt_delta = 0.95, refresh = 0)
+                     adapt_delta = 0.95, refresh = 50)
 })
 hmc$diagnostic_summary()
 

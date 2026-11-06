@@ -16,6 +16,8 @@ laml_model <- function(stan_file, data, seed = 1L) {
 
   model <- bridgestan::StanModel$new(
     stan_file, as.character(data), seed,
+    stanc_args = paste0("--include-paths=", dirname(normalizePath(stan_file))),
+
     make_args = "BRIDGESTAN_AD_HESSIAN=true", warn = FALSE
   )
 
