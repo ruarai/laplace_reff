@@ -46,7 +46,7 @@ test_that("gradient differences reproduce the analytic Hessian", {
 
 test_that("a density error next to theta fails the Hessian", {
   model <- mock_model(c("x", "w"),
-                      val = function(p) if (p[1] > 1e-6) stop("rejected") else 0,
+                      val = function(p) if (p[1] > 0) stop("rejected") else 0,
                       grad = function(p) c(0, 0),
                       hess = function(p) diag(2))
   expect_null(gradient_hessian(model, c(0, 0), 1))

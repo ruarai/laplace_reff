@@ -37,9 +37,8 @@ data <- list(
 
 # Fit ---------------------------------------------------------------------
 
-model <- laml_model("inst/model_renewal.stan", data)
-
-fit <- laml_fit(model, outer = c("alpha", "rho", "log_phi"))
+fit <- laml_fit("inst/model_renewal.stan", data,
+                outer = c("alpha", "rho", "log_phi"))
 
 library(tidyverse)
 

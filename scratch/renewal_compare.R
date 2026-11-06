@@ -37,7 +37,7 @@ data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
 # Fit ---------------------------------------------------------------------
 
 laml_time <- system.time({
-  fit <- laml_fit(laml_model("inst/model_renewal.stan", data),
+  fit <- laml_fit("inst/model_renewal.stan", data,
                   outer = c("alpha", "rho", "log_phi"))
 })
 

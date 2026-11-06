@@ -79,7 +79,7 @@ test_that("nlminb needs fewer solves than Nelder-Mead for the same optimum", {
   opt <- optim(c(0, 0), nm$fn, method = "Nelder-Mead",
                control = list(fnscale = -1, reltol = 1e-10))
 
-  fit <- laml_fit(model, outer = c("m", "s"))
+  fit <- fit_model(model, outer = c("m", "s"))
   expect_true(fit$converged)
   expect_lt(fit$counts[["solves"]], nm$counts()[["solves"]])
   expect_equal(unname(fit$outer), opt$par, tolerance = 1e-3)

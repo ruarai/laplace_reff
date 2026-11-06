@@ -1,18 +1,6 @@
-#' Compile and load a Stan model through BridgeStan
-#'
-#' @param stan_file Path to a `.stan` file.
-#' @param data Named list, JSON string or path to a `.json` file. Wrap
-#'   length-one arrays in `I()` so they stay arrays in the JSON.
-#' @param seed Seed passed to BridgeStan.
-#' @return A `bridgestan::StanModel`.
-#' @export
+# Compile and load a Stan model through BridgeStan. `data` is as in laml_fit().
 laml_model <- function(stan_file, data, seed = 1L) {
-  if (is.list(data)) {
-    path <- tempfile(pattern = "standata-", fileext = ".json")
-    on.exit(unlink(path), add = TRUE)
-    write_stan_json(data, path)
-    data <- path
-  }
+  if (is.list(data)) data <- stan_json(data)
 
   model <- bridgestan::StanModel$new(
     stan_file, as.character(data), seed,
@@ -34,7 +22,7 @@ laml_model <- function(stan_file, data, seed = 1L) {
 # itself ("z.1") or every element of a container ("z").
 # TODO: change this so that it matches normal indexing notation rather than
 # bridgestan's weird version.
-outer_index <- function(model, outer) {
+get_outer_param_indices <- function(model, outer) {
   if (length(outer) == 0) stop("`outer` must name at least one parameter.")
   names_unc <- model$param_unc_names()
   stems <- sub("\\..*$", "", names_unc)
@@ -54,10 +42,11 @@ outer_index <- function(model, outer) {
   idx
 }
 
-# write_stan_json() and list_to_array() are copied from cmdstanr 0.9.0
-# (https://github.com/stan-dev/cmdstanr). The only change is that `%||%` in
-# list_to_array() is written out, as it needs R >= 4.4. cmdstanr's licence
-# applies to these two functions:
+# stan_json() and list_to_array() are copied from cmdstanr 0.9.0
+# (https://github.com/stan-dev/cmdstanr). The only changes are that
+# write_stan_json() became stan_json(), which returns the JSON as a string
+# instead of writing a file, and that `%||%` in list_to_array() is written out,
+# as it needs R >= 4.4. cmdstanr's licence applies to these two functions:
 #
 # Copyright (c) 2019, Stan Developers and their Assignees
 #
@@ -86,12 +75,9 @@ outer_index <- function(model, outer) {
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-write_stan_json <- function(data, file, always_decimal = FALSE) {
+stan_json <- function(data, always_decimal = FALSE) {
   if (!is.list(data)) {
     stop("'data' must be a list.", call. = FALSE)
-  }
-  if (!is.character(file) || !nzchar(file)) {
-    stop("The supplied filename is invalid!", call. = FALSE)
   }
 
   data_names <- names(data)
@@ -126,9 +112,8 @@ write_stan_json <- function(data, file, always_decimal = FALSE) {
     data[[var_name]] <- var
   }
 
-  jsonlite::write_json(
+  jsonlite::toJSON(
     data,
-    path = file,
     auto_unbox = TRUE,
     factor = "integer",
     always_decimal = always_decimal,

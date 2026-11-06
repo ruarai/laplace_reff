@@ -5,24 +5,22 @@
 \title{Fit a Stan model by nested Laplace approximation}
 \usage{
 laml_fit(
-  model,
-  data = NULL,
+  stan_file,
+  data,
   outer,
-  init = NULL,
   inner_control = list(),
   outer_control = list(),
   seed = 1L
 )
 }
 \arguments{
-\item{model}{Path to a `.stan` file, or a model from [laml_model()].}
+\item{stan_file}{Path to a `.stan` file.}
 
-\item{data}{Data for `laml_model()`. Used only when `model` is a path.}
+\item{data}{Named list, JSON string or path to a `.json` file. Wrap
+length-one arrays in `I()` so they stay arrays in the JSON.}
 
 \item{outer}{Names of the outer parameters. A container name selects all
 of its unconstrained elements, and `"z.1"` selects one.}
-
-\item{init}{Unconstrained starting vector. Defaults to zeros.}
 
 \item{inner_control}{List with `tol` (on the maximum absolute gradient) and
 `maxit` for the Newton solver.}

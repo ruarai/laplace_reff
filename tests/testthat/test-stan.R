@@ -29,9 +29,10 @@ test_that("a compiled Gaussian model matches the analytic answer", {
 test_that("the seed makes random generated quantities reproducible", {
   skip_without_bridgestan()
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
-  model <- laml_model(stan_copy("gaussian.stan"), list(n = length(y), y = y))
+  stan_file <- stan_copy("gaussian.stan")
   m_rng <- function(seed) {
-    laml_fit(model, outer = c("m", "s"), seed = seed)$estimate[["m_rng"]]
+    laml_fit(stan_file, list(n = length(y), y = y), outer = c("m", "s"),
+             seed = seed)$estimate[["m_rng"]]
   }
   expect_equal(m_rng(1L), m_rng(1L))
   expect_false(m_rng(1L) == m_rng(2L))
@@ -40,9 +41,8 @@ test_that("the seed makes random generated quantities reproducible", {
 test_that("constrained outer parameters are optimised on the log scale", {
   skip_without_bridgestan()
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
-  model <- laml_model(stan_copy("gaussian_bounded.stan"),
-                      list(n = length(y), y = y))
-  fit <- laml_fit(model, outer = c("m", "sigma"))
+  fit <- laml_fit(stan_copy("gaussian_bounded.stan"),
+                  list(n = length(y), y = y), outer = c("m", "sigma"))
   # The Jacobian comes from Stan: flat on sigma gives a density in log sigma
   # of p(y | sigma) * sigma, and the mode shifts accordingly.
   profile <- function(ls) {
@@ -56,8 +56,8 @@ test_that("constrained outer parameters are optimised on the log scale", {
 test_that("draws keep Stan's constraints and generated quantities", {
   skip_without_bridgestan()
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
-  model <- laml_model(stan_copy("gaussian.stan"), list(n = length(y), y = y))
-  fit <- laml_fit(model, outer = c("m", "s"))
+  fit <- laml_fit(stan_copy("gaussian.stan"), list(n = length(y), y = y),
+                  outer = c("m", "s"))
   draws <- laml_draws(fit, 50, corrected = TRUE)
   expect_equal(draws$sd_x, exp(draws$s))
   expect_equal(draws$twice_m, 2 * draws$m)

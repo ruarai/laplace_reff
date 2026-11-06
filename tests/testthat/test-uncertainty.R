@@ -1,7 +1,7 @@
 y <- c(-3, -1, 0.5, 2, 3.5, 6)
 
 test_that("outer standard errors match the analytic marginal curvature", {
-  fit <- laml_fit(gaussian_mock(y), outer = c("m", "s"))
+  fit <- fit_model(gaussian_mock(y), outer = c("m", "s"))
   n <- length(y)
   v <- mean((y - mean(y))^2)
   expected <- diag(c(n / v, 2 * n * (v - 1)^2 / v^2))
@@ -11,7 +11,7 @@ test_that("outer standard errors match the analytic marginal curvature", {
 })
 
 test_that("conditional draws hold the outer parameters at their estimates", {
-  fit <- laml_fit(gaussian_mock(y), outer = c("m", "s"))
+  fit <- fit_model(gaussian_mock(y), outer = c("m", "s"))
   set.seed(1)
   draws <- laml_draws(fit, 20000)
   expect_equal(posterior::ndraws(draws), 20000)
@@ -21,7 +21,7 @@ test_that("conditional draws hold the outer parameters at their estimates", {
 })
 
 test_that("corrected draws recover a joint Gaussian posterior", {
-  fit <- laml_fit(linear_mock(y), outer = "m")
+  fit <- fit_model(linear_mock(y), outer = "m")
   full <- solve(-linear_mock(y)$log_density_hessian(unname(fit$theta))$hessian)
   set.seed(1)
   draws <- laml_draws(fit, 20000, corrected = TRUE)
@@ -32,7 +32,7 @@ test_that("corrected draws recover a joint Gaussian posterior", {
 
 test_that("corrected draws follow a mode that is curved in omega", {
   y_scale <- c(-2, -1, 0.5, 1.5, 3)
-  fit <- laml_fit(scale_mock(y_scale), outer = "s")
+  fit <- fit_model(scale_mock(y_scale), outer = "s")
   expect_gt(fit$outer_se[["s"]], 0.2)
 
   set.seed(1)
@@ -53,7 +53,7 @@ test_that("an outer draw whose solve fails is drawn again", {
                       },
                       grad = function(p) c(-2 * p[1], -2 * p[2]),
                       hess = function(p) diag(c(-2, -2)))
-  fit <- laml_fit(model, outer = "w")
+  fit <- fit_model(model, outer = "w")
   set.seed(1)
   expect_warning(draws <- laml_draws(fit, 500, corrected = TRUE), "drawn again")
   expect_equal(posterior::ndraws(draws), 500)
@@ -61,7 +61,7 @@ test_that("an outer draw whose solve fails is drawn again", {
 })
 
 test_that("draws follow set.seed", {
-  fit <- laml_fit(gaussian_mock(y), outer = c("m", "s"))
+  fit <- fit_model(gaussian_mock(y), outer = c("m", "s"))
   set.seed(2); a <- laml_draws(fit, 5, corrected = TRUE)
   set.seed(2); b <- laml_draws(fit, 5, corrected = TRUE)
   expect_equal(a, b)
@@ -73,7 +73,7 @@ test_that("a flat outer direction warns and blocks corrected draws", {
                      val = function(p) -p[1]^2,
                      grad = function(p) c(-2 * p[1], 0),
                      hess = function(p) diag(c(-2, 0)))
-  expect_warning(fit <- laml_fit(flat, outer = "w"), "not positive definite")
+  expect_warning(fit <- fit_model(flat, outer = "w"), "not positive definite")
   expect_true(is.na(fit$outer_se[["w"]]))
   expect_equal(posterior::ndraws(laml_draws(fit, 3)), 3)
   expect_error(laml_draws(fit, 3, corrected = TRUE), "needs `outer_vcov`")
@@ -88,6 +88,6 @@ test_that("a failed gradient during the outer Hessian keeps the fit", {
                       },
                       grad = function(p) c(-2 * p[1], -2 * p[2]),
                       hess = function(p) diag(c(-2, -2)))
-  expect_warning(fit <- laml_fit(model, outer = "w"), "not positive definite")
+  expect_warning(fit <- fit_model(model, outer = "w"), "not positive definite")
   expect_equal(fit$outer[["w"]], 0, tolerance = 1e-6)
 })

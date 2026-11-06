@@ -8,8 +8,9 @@
 #' which is much faster than autodiff for large models. `H` and `logml` use
 #' one autodiff Hessian at the optimum.
 #'
-#' @param model Path to a `.stan` file, or a model from [laml_model()].
-#' @param data Data for `laml_model()`. Used only when `model` is a path.
+#' @param stan_file Path to a `.stan` file.
+#' @param data Named list, JSON string or path to a `.json` file. Wrap
+#'   length-one arrays in `I()` so they stay arrays in the JSON.
 #' @param outer Names of the outer parameters. A container name selects all
 #'   of its unconstrained elements, and `"z.1"` selects one.
 #' @param inner_control List with `tol` (on the maximum absolute gradient) and
@@ -29,17 +30,22 @@
 #'   `model` and `inner_control` used.
 #'   Use [laml_draws()] for inference.
 #' @export
-laml_fit <- function(model, data = NULL, outer,
+laml_fit <- function(stan_file, data, outer,
                      inner_control = list(), outer_control = list(),
                      seed = 1L) {
-  if (is.character(model)) model <- laml_model(model, data, seed)
+  model <- laml_model(stan_file, data, seed)
+  fit_model(model, outer, inner_control, outer_control, seed)
+}
 
+# The fit itself, on a loaded model. Tests call this directly with mock models.
+fit_model <- function(model, outer, inner_control = list(),
+                      outer_control = list(), seed = 1L) {
   names_unc <- model$param_unc_names()
 
   # TODO: handle init with constrained inputs, ala cmdstanr
   init <- numeric(length(names_unc))
 
-  outer_idx <- outer_index(model, outer)
+  outer_idx <- get_outer_param_indices(model, outer)
 
   objective <- make_objective(model, init, outer_idx, inner_control)
 
