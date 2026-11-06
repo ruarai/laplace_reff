@@ -34,25 +34,9 @@ Serialize an empty data list as an object.
 
 The tests now differentiate `exact_laml()`, which uses exact curvature.
 
-## 5. [P3] Two example calls reference a missing model path
+## 5. [P3] Two example calls reference a missing model path (resolved)
 
-Locations: [scratch/renewal_run.R:40](scratch/renewal_run.R#L40) and
-[scratch/renewal_compare.R:74](scratch/renewal_compare.R#L74).
-
-These calls still load `inst/model_renewal.stan`; the file resides under
-`scratch/`. The missing path prevents the examples from completing.
-
-Update both calls to use `scratch/model_renewal.stan`.
-
-## 6. [P3] The comparison script uses an undefined object
-
-Location: [scratch/renewal_compare.R:123](scratch/renewal_compare.R#L123).
-
-The script calls `compare(corrected, ...)`, but the assignment to `corrected` is
-commented out. A fresh session fails here; an interactive session could
-accidentally compare stale draws.
-
-Generate the draws or make both operations conditional.
+## 6. [P3] The comparison script uses an undefined object (resolved)
 
 ## 7. [P3] `nlminb` is not unit-free
 
@@ -77,16 +61,3 @@ The decrement cannot fall below roughly gradient noise x SD x sqrt(n). A weakly
 identified model might not reach the default `tol`, and solves that passed under
 `max(abs(g)) < tol` would then return `-Inf`. Fit the renewal model before and
 after this change to find out. Raising `tol` is the workaround.
-
-## Validation
-
-- Ran the full test suite, including compiled Stan tests. Five assertions failed,
-  all described in issue 4.
-- Package build succeeded.
-- `R CMD check --no-tests --no-manual` completed with one note about the bundled
-  `.review` directory.
-- Additional checks of correlated Gaussian models, reordered outer parameters,
-  and corrected-draw covariance passed.
-- The expensive scratch HMC workflow was not executed.
-- No repository files were changed during the review. This document records the
-  findings; it does not implement fixes.
