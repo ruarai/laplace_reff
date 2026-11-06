@@ -158,8 +158,7 @@ laml_value <- function(sol) sol$val - sum(log(diag(sol$R)))
 # divided by h^2 here.
 #
 # Stan's stan::model::grad_tr_mat_times_hessian() computes the same thing by
-# autodiff, with M = H^-1 on the inner block and zero elsewhere. BridgeStan does
-# not expose it, and it uses forward mode through the model.
+# autodiff, with M = H^-1 on the inner block and zero elsewhere.
 grad_tr_inverse_hessian <- function(model, sol, inner, h = 0.01) {
   grad_at <- function(theta) {
     ev <- density_gradient(model, theta)
@@ -181,6 +180,10 @@ grad_tr_inverse_hessian <- function(model, sol, inner, h = 0.01) {
   g
 }
 
+# Human note (RT): unfortunately I can't comprehend what's going on here
+# I think there's some relation to de Walle, Kadkhodaei, Sun & Hong (2017)
+# possibly also Krüger & Kriegesmann (2024)
+# ----
 # dL/domega at a converged solve. With t_j = (J_j, e_j), where J = dx_hat/domega =
 # H^-1 l_xomega, the gradient is l_omega_j - 0.5 D_j, where D_j = d log|H| along
 # t_j. Then D_j = tr(H^-1 dH/dt_j) = -g . t_j, with g from

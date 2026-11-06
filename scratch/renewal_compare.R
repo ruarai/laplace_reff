@@ -47,7 +47,7 @@ conditional <- laml_draws(fit, 2000)
 corrected <- laml_draws(fit, 150, corrected = TRUE)
 
 
-corrected |> 
+conditional |> 
   tidybayes::spread_draws(cases[t], log_phi) |> 
   mutate(cases = rnbinom(n(), size = exp(log_phi), mu = cases)) |> 
   

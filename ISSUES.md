@@ -52,12 +52,3 @@ Location: [R/inner.R](R/inner.R), `damped_chol()`.
 
 `tau` uses `max(1, abs(diag(H)))`, which depends on units. It only affects the
 path taken while `H` is not positive definite, not the mode found.
-
-## 9. [P2] The Newton decrement stop is untested on real models
-
-Location: [R/inner.R](R/inner.R), `inner_newton()`.
-
-The decrement cannot fall below roughly gradient noise x SD x sqrt(n). A weakly
-identified model might not reach the default `tol`, and solves that passed under
-`max(abs(g)) < tol` would then return `-Inf`. Fit the renewal model before and
-after this change to find out. Raising `tol` is the workaround.
