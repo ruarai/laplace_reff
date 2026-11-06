@@ -8,7 +8,10 @@
 #' @export
 laml_model <- function(stan_file, data, seed = 1L) {
   if (is.list(data)) {
-    data <- jsonlite::toJSON(data, auto_unbox = TRUE, digits = NA)
+    path <- tempfile(pattern = "standata-", fileext = ".json")
+    on.exit(unlink(path), add = TRUE)
+    write_stan_json(data, path)
+    data <- path
   }
 
   model <- bridgestan::StanModel$new(
@@ -45,4 +48,110 @@ outer_index <- function(model, outer) {
     stop("`outer` covers every parameter, leaving nothing to integrate out.")
   }
   idx
+}
+
+# write_stan_json() and list_to_array() are copied from cmdstanr 0.9.0
+# (https://github.com/stan-dev/cmdstanr). The only change is that `%||%` in
+# list_to_array() is written out, as it needs R >= 4.4. cmdstanr's licence
+# applies to these two functions:
+#
+# Copyright (c) 2019, Stan Developers and their Assignees
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from this
+#    software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+write_stan_json <- function(data, file, always_decimal = FALSE) {
+  if (!is.list(data)) {
+    stop("'data' must be a list.", call. = FALSE)
+  }
+  if (!is.character(file) || !nzchar(file)) {
+    stop("The supplied filename is invalid!", call. = FALSE)
+  }
+
+  data_names <- names(data)
+  if (length(data) > 0 &&
+      (length(data_names) == 0 ||
+       length(data_names) != sum(nzchar(data_names)))) {
+    stop("All elements in 'data' list must have names.", call. = FALSE)
+  }
+  if (anyDuplicated(data_names) != 0) {
+    stop("Duplicate names not allowed in 'data'.", call. = FALSE)
+  }
+
+  for (var_name in data_names) {
+    var <- data[[var_name]]
+    if (!(is.numeric(var) || is.factor(var) || is.logical(var) ||
+          is.data.frame(var) || is.list(var))) {
+      stop("Variable '", var_name, "' is of invalid type.", call. = FALSE)
+    }
+    if (anyNA(var)) {
+      stop("Variable '", var_name, "' has NA values.", call. = FALSE)
+    }
+
+    if (is.table(var)) {
+      var <- unclass(var)
+    } else if (is.logical(var)) {
+      mode(var) <- "integer"
+    } else if (is.data.frame(var)) {
+      var <- data.matrix(var)
+    } else if (is.list(var)) {
+      var <- list_to_array(var, var_name)
+    }
+    data[[var_name]] <- var
+  }
+
+  jsonlite::write_json(
+    data,
+    path = file,
+    auto_unbox = TRUE,
+    factor = "integer",
+    always_decimal = always_decimal,
+    digits = NA,
+    pretty = TRUE
+  )
+}
+
+list_to_array <- function(x, name = NULL) {
+  list_length <- length(x)
+  if (list_length == 0) {
+    return(NULL)
+  }
+  all_dims <- lapply(x, function(z) if (is.null(dim(z))) length(z) else dim(z))
+  all_equal_dim <- all(sapply(all_dims, function(d) {
+    isTRUE(all.equal(d, all_dims[[1]]))
+  }))
+  if (!all_equal_dim) {
+    stop("All matrices/vectors in list '", name, "' must be the same size!",
+         call. = FALSE)
+  }
+  all_numeric <- all(sapply(x, function(a) is.numeric(a)))
+  if (!all_numeric) {
+    stop("All elements in list '", name, "' must be numeric!", call. = FALSE)
+  }
+  element_num_of_dim <- length(all_dims[[1]])
+  x <- unlist(x)
+  dim(x) <- c(all_dims[[1]], list_length)
+  aperm(x, c(element_num_of_dim + 1L, seq_len(element_num_of_dim)))
 }
