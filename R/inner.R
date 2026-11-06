@@ -85,7 +85,7 @@ inner_failure <- function(theta, iter, message) {
 #
 # Possible speed-up: each solve takes about 5 iterations, and only the last
 # Hessian is needed for log|H|. Starting from x_hat + J * (change in omega), with
-# J from mode_tangent(), and reusing the previous Cholesky factor for the steps
+# J = H^-1 l_xomega, and reusing the previous Cholesky factor for the steps
 # (directly, or as a CG preconditioner) could get this down to about 1 Hessian
 # per solve, with only gradients until convergence.
 inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
@@ -149,21 +149,18 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
 # L(omega) = l(x_hat, omega) - 0.5 log|H|
 laml_value <- function(sol) sol$val - sum(log(diag(sol$R)))
 
-# J = dx_hat/domega = H^-1 l_xomega, one column per outer parameter.
-mode_tangent <- function(sol, inner, outer_idx) {
-  chol2inv(sol$R) %*% sol$hessian[inner, outer_idx, drop = FALSE]
-}
-
-# dL/domega at a converged solve. With t_j = (dx_hat/domega_j, e_j), the
-# gradient is l_omega_j - 0.5 D_j, where D_j = d log|H| along t_j. Then
-# D_j = tr(H^-1 dH/dt_j) = -g . t_j, with g = grad tr(H^-1 l_xx) holding H^-1
-# fixed, so one g serves every outer parameter. Writing H^-1 = V V', g sums the
-# second derivative of the gradient along each column of V. That is a five-point
-# stencil of gradients, so this costs 4 gradients per inner parameter. `h` is the
-# step along each column of V, in standard deviations of N(x_hat, H^-1), so
-# rescaling the parameters leaves it unchanged. It is much larger than the step in
-# gradient_hessian() because rounding error is divided by h^2 here.
-laml_gradient <- function(model, sol, inner, outer_idx, h = 0.01) {
+# grad tr(H^-1 l_xx) over all of theta at a converged solve, holding H^-1 fixed.
+# Writing H^-1 = V V', this sums the second derivative of the gradient along each
+# column of V. That is a five-point stencil of gradients, so this costs 4 gradients
+# per inner parameter. `h` is the step along each column of V, in standard
+# deviations of N(x_hat, H^-1), so rescaling the parameters leaves it unchanged. It
+# is much larger than the step in gradient_hessian() because rounding error is
+# divided by h^2 here.
+#
+# Stan's stan::model::grad_tr_mat_times_hessian() computes the same thing by
+# autodiff, with M = H^-1 on the inner block and zero elsewhere. BridgeStan does
+# not expose it, and it uses forward mode through the model.
+grad_tr_inverse_hessian <- function(model, sol, inner, h = 0.01) {
   grad_at <- function(theta) {
     ev <- density_gradient(model, theta)
     if (is.null(ev) || !all(is.finite(ev$gradient))) {
@@ -181,12 +178,19 @@ laml_gradient <- function(model, sol, inner, outer_idx, h = 0.01) {
     far <- grad_at(sol$theta + 2 * h * v) + grad_at(sol$theta - 2 * h * v)
     g <- g + (16 * near - far - 30 * sol$gradient) / (12 * h^2)
   }
+  g
+}
 
-  tangents <- matrix(0, length(sol$theta), length(outer_idx))
-  tangents[inner, ] <- mode_tangent(sol, inner, outer_idx)
-  tangents[cbind(outer_idx, seq_along(outer_idx))] <- 1
-
-  sol$gradient[outer_idx] + 0.5 * drop(crossprod(tangents, g))
+# dL/domega at a converged solve. With t_j = (J_j, e_j), where J = dx_hat/domega =
+# H^-1 l_xomega, the gradient is l_omega_j - 0.5 D_j, where D_j = d log|H| along
+# t_j. Then D_j = tr(H^-1 dH/dt_j) = -g . t_j, with g from
+# grad_tr_inverse_hessian(), so one g serves every outer parameter. Solving
+# H a = g_x first gives g_x' J = a' l_xomega without forming J.
+laml_gradient <- function(model, sol, inner, outer_idx, h = 0.01) {
+  g <- grad_tr_inverse_hessian(model, sol, inner, h)
+  adjoint <- backsolve(sol$R, backsolve(sol$R, g[inner], transpose = TRUE))
+  cross <- sol$hessian[inner, outer_idx, drop = FALSE]
+  sol$gradient[outer_idx] + 0.5 * (g[outer_idx] + drop(crossprod(cross, adjoint)))
 }
 
 # Replaces the finite-difference Hessian of a converged solve with Stan's

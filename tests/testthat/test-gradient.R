@@ -19,6 +19,16 @@ test_that("the gradient matches a finite difference of L when H depends on x", {
   }
 })
 
+test_that("grad_tr_inverse_hessian matches the analytic Poisson result", {
+  y <- c(0, 1, 2, 4, 7, 12)
+  sol <- inner_newton(poisson_mock(y), c(numeric(6), 1, -0.5), 1:6, tol = 1e-10)
+  x <- sol$theta[1:6]
+  w <- exp(2 * 0.5)
+  H <- exp(x) + w
+  expect_equal(grad_tr_inverse_hessian(poisson_mock(y), sol, 1:6),
+               c(-exp(x) / H, 0, 2 * w * sum(1 / H)), tolerance = 1e-6)
+})
+
 test_that("the gradient is stable across step sizes", {
   y <- c(0, 1, 2, 4, 7, 12)
   model <- poisson_mock(y)
