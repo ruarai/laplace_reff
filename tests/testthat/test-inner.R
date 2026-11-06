@@ -34,6 +34,30 @@ test_that("a failed density evaluation shortens the step", {
   expect_equal(sol$theta[1], 1)
 })
 
+test_that("a non-finite trial density shortens the step", {
+  # As above, but the density returns a value rather than an error. NaN is what
+  # Stan gives for sqrt() of a negative number.
+  overshoot <- function(bad) {
+    mock_model(
+      c("x", "w"),
+      val = function(p) {
+        if (p[1] > 1.5) return(bad)
+        if (p[1] < 0) -1 + 2 * p[1] - 0.25 * p[1]^2 else -(p[1] - 1)^2
+      },
+      grad = function(p) {
+        if (p[1] > 1.5) return(c(bad, 0))
+        c(if (p[1] < 0) 2 - 0.5 * p[1] else -2 * (p[1] - 1), 0)
+      },
+      hess = function(p) diag(c(if (p[1] < 0) -0.5 else -2, 0))
+    )
+  }
+  for (bad in c(NaN, Inf)) {
+    sol <- inner_newton(overshoot(bad), c(-5, 0), 1)
+    expect_true(sol$converged)
+    expect_equal(sol$theta[1], 1)
+  }
+})
+
 test_that("gradient differences reproduce the analytic Hessian", {
   model <- poisson_mock(c(0, 1, 2, 4))
   theta <- c(0.1, -0.2, 0.3, 1, 0.5, -0.4)

@@ -134,7 +134,8 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
     for (i in 1:40) {
       candidate <- theta
       candidate[inner] <- theta[inner] + a * step
-      if (density_value(model, candidate) >= ev$val + 1e-4 * a * slope - slack) {
+      trial <- density_value(model, candidate)
+      if (is.finite(trial) && trial >= ev$val + 1e-4 * a * slope - slack) {
         accepted <- TRUE
         break
       }

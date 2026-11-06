@@ -10,15 +10,11 @@ stop is now the Newton decrement, so `tol` is unit-free too. Fits on the Poisson
 mock match across inner scales from `1e-6` to `1e6`. This was not checked on the
 renewal model; see issue 9.
 
-## 2. [P2] A NaN trial density crashes the solver
+## 2. [P2] A NaN trial density crashes the solver (resolved)
 
-Location: [R/inner.R:106](R/inner.R#L106).
-
-The line search passes the density comparison directly to `if`. A compiled Stan
-model returning `NaN` produces "missing value where TRUE/FALSE needed," aborting
-fitting instead of shortening the step.
-
-Reject nonfinite trial values before comparing them.
+The line search now rejects nonfinite trial values before comparing them, so
+`NaN` and `+Inf` shorten the step. A finite value with a `NaN` gradient still
+fails the solve rather than shortening the step.
 
 ## 3. [P2] Empty data lists cannot initialize data-free models (resolved)
 
