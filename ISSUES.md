@@ -2,16 +2,13 @@
 
 Review date: 6 November 2026.
 
-## 1. [P2] Numerical gradients depend strongly on parameter units
+## 1. [P2] Numerical gradients depend strongly on parameter units (resolved)
 
-Location: [R/inner.R:148](R/inner.R#L148).
-
-The gradient calculation forces a fixed coordinate displacement regardless of
-parameter scale. Rescaling the existing Poisson model's inner coordinates by
-`1e-4` changes an equivalent gradient from approximately `(2.04, 2.91)` to
-`(277735, 66977)`, causing optimization failure.
-
-Use scale-aware differentiation steps and expose appropriate controls.
+The steps in `laml_gradient()`, `gradient_hessian()` and `outer_uncertainty()`
+are now in posterior standard deviations, set through `inner_control`. The inner
+stop is now the Newton decrement, so `tol` is unit-free too. Fits on the Poisson
+mock match across inner scales from `1e-6` to `1e6`. This was not checked on the
+renewal model; see issue 9.
 
 ## 2. [P2] A NaN trial density crashes the solver
 
@@ -33,16 +30,9 @@ with `"{}"`.
 
 Serialize an empty data list as an object.
 
-## 4. [P2] The gradient tests use an insufficiently accurate reference
+## 4. [P2] The gradient tests use an insufficiently accurate reference (resolved)
 
-Locations: [tests/testthat/test-gradient.R:15](tests/testthat/test-gradient.R#L15)
-and [line 23](tests/testthat/test-gradient.R#L23).
-
-These tests differentiate an objective already containing finite-difference
-Hessian noise. Five assertions fail in the review environment. Using exact
-curvature for the reference reduces every discrepancy below `3e-8`.
-
-Use an analytic or exact-curvature reference to make these checks reliable.
+The tests now differentiate `exact_laml()`, which uses exact curvature.
 
 ## 5. [P3] Two example calls reference a missing model path
 
@@ -63,6 +53,30 @@ commented out. A fresh session fails here; an interactive session could
 accidentally compare stale draws.
 
 Generate the draws or make both operations conditional.
+
+## 7. [P3] `nlminb` is not unit-free
+
+Location: [R/fit.R](R/fit.R), the `nlminb()` call.
+
+Rescaling the outer parameters by `1e4` or more can report `converged = FALSE`
+with correct values, and `1e-6` reaches the wrong optimum. `outer_control` can
+pass `scale` to `nlminb()`, though nothing sets it automatically.
+
+## 8. [P3] `damped_chol()` has an absolute floor
+
+Location: [R/inner.R](R/inner.R), `damped_chol()`.
+
+`tau` uses `max(1, abs(diag(H)))`, which depends on units. It only affects the
+path taken while `H` is not positive definite, not the mode found.
+
+## 9. [P2] The Newton decrement stop is untested on real models
+
+Location: [R/inner.R](R/inner.R), `inner_newton()`.
+
+The decrement cannot fall below roughly gradient noise x SD x sqrt(n). A weakly
+identified model might not reach the default `tol`, and solves that passed under
+`max(abs(g)) < tol` would then return `-Inf`. Fit the renewal model before and
+after this change to find out. Raising `tol` is the workaround.
 
 ## Validation
 

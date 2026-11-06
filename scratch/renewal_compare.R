@@ -11,7 +11,7 @@ n <- 365 * 2
 g <- 4
 d <- 8
 seed_infections <- 5
-phi_true <- 20
+phi_true <- 10
 
 gen <- dgamma(1:g, 3, 0.6)
 gen <- gen / sum(gen)
@@ -44,10 +44,10 @@ laml_time <- system.time({
 })
 
 conditional <- laml_draws(fit, 2000)
-# corrected <- laml_draws(fit, 150, corrected = TRUE)
+corrected <- laml_draws(fit, 150, corrected = TRUE)
 
 
-conditional |> 
+corrected |> 
   tidybayes::spread_draws(cases[t], log_phi) |> 
   mutate(cases = rnbinom(n(), size = exp(log_phi), mu = cases)) |> 
   

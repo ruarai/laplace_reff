@@ -13,8 +13,14 @@
 #'   length-one arrays in `I()` so they stay arrays in the JSON.
 #' @param outer Names of the outer parameters. A container name selects all
 #'   of its unconstrained elements, and `"z.1"` selects one.
-#' @param inner_control List with `tol` (on the maximum absolute gradient) and
-#'   `maxit` for the Newton solver.
+#' @param inner_control List of solver settings. `tol` (default `1e-8`) stops
+#'   the Newton solver when the distance to the mode, `sqrt(g' H^-1 g)`, falls
+#'   below it, and `maxit` (default `100`) limits its iterations.
+#'   `hessian_step` (`1e-5`), `gradient_step` (`0.01`) and `outer_step` (`1e-3`)
+#'   are the finite-difference steps for the inner Hessian, the gradient of `L`
+#'   and `outer_hessian`. All of these except `maxit` are in approximate
+#'   posterior standard deviations on the unconstrained scale, so they do not
+#'   need changing when parameters are rescaled.
 #' @param outer_control Passed to `nlminb()` as `control`.
 #' @param seed Seed for the model and for generated quantities.
 #' @return A list of class `laml_fit`: `outer` and `inner` estimates, the full
@@ -73,10 +79,15 @@ fit_model <- function(model, outer, inner_control = list(),
   theta <- stats::setNames(inner_sol$theta, names_unc)
   outer_names <- names_unc[outer_idx]
   
-  gradient <- stats::setNames(objective$gr(opt$par), outer_names)
-  uncertainty <- outer_uncertainty(objective$gr, opt$par, outer_names)
+  inner_idx <- seq_along(names_unc)[-outer_idx]
+  inner_sol_exact <- exact_mode(model, inner_sol, inner_idx)
 
-  inner_sol_exact <- exact_mode(model, inner_sol, seq_along(names_unc)[-outer_idx])
+  gradient <- stats::setNames(objective$gr(opt$par), outer_names)
+  uncertainty <- outer_uncertainty(
+    objective$gr, opt$par, outer_names,
+    outer_steps(inner_sol_exact, inner_idx, outer_idx,
+                inner_settings(inner_control)$outer_step)
+  )
 
   structure(
     list(
@@ -101,15 +112,32 @@ fit_model <- function(model, outer, inner_control = list(),
   )
 }
 
+# Coordinate changes for outer_uncertainty(): `outer_step` standard deviations
+# of omega, from the Schur complement of the joint Hessian. This leaves out the
+# curvature of log|H|, but only sets a scale. It is not positive if the outer
+# block is missing, as it is when exact_mode() falls back to differences, and
+# those parameters then use a fixed step.
+outer_steps <- function(sol, inner, outer_idx, outer_step) {
+  cross <- backsolve(sol$R, sol$hessian[inner, outer_idx, drop = FALSE],
+                     transpose = TRUE)
+  precision <- -diag(sol$hessian)[outer_idx] - colSums(cross^2)
+  usable <- is.finite(precision) & precision > 0
+  steps <- rep(1e-3, length(outer_idx))
+  steps[usable] <- outer_step / sqrt(precision[usable])
+  steps
+}
+
 # -d2L/domega2 by central differences of the gradient, and its inverse. The fit
-# is still usable without these, so a failure here is a warning.
+# is still usable without these, so a failure here is a warning. `h` is the
+# coordinate change, one per outer parameter or a single value for all of them.
 outer_uncertainty <- function(gr, omega, names, h = 1e-3) {
   q <- length(omega)
+  h <- rep_len(h, q)
   dimnames <- list(names, names)
   hessian <- tryCatch({
     A <- vapply(seq_len(q), function(j) {
-      e <- replace(numeric(q), j, h)
-      (gr(omega + e) - gr(omega - e)) / (2 * h)
+      e <- replace(numeric(q), j, h[j])
+      (gr(omega + e) - gr(omega - e)) / (2 * h[j])
     }, numeric(q))
     A <- matrix(A, q, q)
     -(A + t(A)) / 2

@@ -22,8 +22,14 @@ length-one arrays in `I()` so they stay arrays in the JSON.}
 \item{outer}{Names of the outer parameters. A container name selects all
 of its unconstrained elements, and `"z.1"` selects one.}
 
-\item{inner_control}{List with `tol` (on the maximum absolute gradient) and
-`maxit` for the Newton solver.}
+\item{inner_control}{List of solver settings. `tol` (default `1e-8`) stops
+the Newton solver when the distance to the mode, `sqrt(g' H^-1 g)`, falls
+below it, and `maxit` (default `100`) limits its iterations.
+`hessian_step` (`1e-5`), `gradient_step` (`0.01`) and `outer_step` (`1e-3`)
+are the finite-difference steps for the inner Hessian, the gradient of `L`
+and `outer_hessian`. All of these except `maxit` are in approximate
+posterior standard deviations on the unconstrained scale, so they do not
+need changing when parameters are rescaled.}
 
 \item{outer_control}{Passed to `nlminb()` as `control`.}
 

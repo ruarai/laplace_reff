@@ -1,3 +1,18 @@
+# Solver settings, from `inner_control`. The three steps are in approximate
+# posterior standard deviations on the unconstrained scale, so they do not depend
+# on linear rescaling of the parameters.
+inner_settings <- function(inner_control = list()) {
+  settings <- list(tol = 1e-8, maxit = 100, hessian_step = 1e-5,
+                   gradient_step = 0.01, outer_step = 1e-3)
+  unknown <- setdiff(names(inner_control), names(settings))
+  if (length(unknown) > 0) {
+    stop("Unknown `inner_control` entries: ", paste(unknown, collapse = ", "),
+         call. = FALSE)
+  }
+  settings[names(inner_control)] <- inner_control
+  settings
+}
+
 # All densities are on the unconstrained scale with Jacobian adjustments.
 density_value <- function(model, theta) {
   tryCatch(model$log_density(theta, propto = TRUE, jacobian = TRUE),
@@ -20,18 +35,21 @@ density_hessian <- function(model, theta) {
 # work. This costs 2 gradients per inner parameter, which is far cheaper than
 # autodiff Hessians when forward mode through the model is slow (35x at 645
 # parameters in the renewal model), and is accurate enough for Newton steps and
-# for L during optimisation.
+# for L during optimisation. `h` is the coordinate change, one per inner parameter
+# or a single value for all of them.
 gradient_hessian <- function(model, theta, inner, h = 1e-7) {
   ev <- density_gradient(model, theta)
   if (is.null(ev)) return(NULL)
   N <- length(theta)
   A <- matrix(0, N, N)
-  for (j in inner) {
-    e <- replace(numeric(N), j, h)
+  h <- rep_len(h, length(inner))
+  for (i in seq_along(inner)) {
+    j <- inner[i]
+    e <- replace(numeric(N), j, h[i])
     above <- density_gradient(model, theta + e)
     below <- density_gradient(model, theta - e)
     if (is.null(above) || is.null(below)) return(NULL)
-    A[, j] <- (above$gradient - below$gradient) / (2 * h)
+    A[, j] <- (above$gradient - below$gradient) / (2 * h[i])
   }
   outer <- setdiff(seq_len(N), inner)
   A[inner, inner] <- (A[inner, inner] + t(A[inner, inner])) / 2
@@ -58,16 +76,22 @@ inner_failure <- function(theta, iter, message) {
 }
 
 # Damped Newton on the inner coordinates of `theta`, holding the rest fixed.
-# Converges on the gradient, and only at a point where H is positive definite.
+# Converges on the Newton decrement sqrt(g' H^-1 g), the distance to the mode
+# under N(x_hat, H^-1), and only at a point where H is positive definite.
+#
+# `steps` are the differences for the first Hessian. Later ones use
+# hessian_step / sqrt(diag(H)) from the Hessian before. These are returned, so
+# that the next solve can start from them.
 #
 # Possible speed-up: each solve takes about 5 iterations, and only the last
 # Hessian is needed for log|H|. Starting from x_hat + J * (change in omega), with
 # J from mode_tangent(), and reusing the previous Cholesky factor for the steps
 # (directly, or as a CG preconditioner) could get this down to about 1 Hessian
 # per solve, with only gradients until convergence.
-inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100) {
+inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
+                         hessian_step = 1e-5, steps = 1e-7) {
   for (iter in seq_len(maxit)) {
-    ev <- gradient_hessian(model, theta, inner)
+    ev <- gradient_hessian(model, theta, inner, steps)
     if (is.null(ev) || !is.finite(ev$val)) {
       return(inner_failure(theta, iter, "log density could not be evaluated"))
     }
@@ -77,14 +101,21 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100) {
       return(inner_failure(theta, iter, "non-finite gradient or Hessian"))
     }
 
+    if (all(diag(H) > 0)) steps <- hessian_step / sqrt(diag(H))
+
     R <- chol_or_null(H)
-    if (max(abs(g)) < tol) {
+    distance <- if (is.null(R)) {
+      max(abs(g))
+    } else {
+      sqrt(sum(backsolve(R, g, transpose = TRUE)^2))
+    }
+    if (distance < tol) {
       if (is.null(R)) {
         return(inner_failure(theta, iter,
                              "H is not positive definite at a stationary point"))
       }
       return(list(theta = theta, val = ev$val, gradient = ev$gradient,
-                  hessian = ev$hessian, H = H, R = R,
+                  hessian = ev$hessian, H = H, R = R, steps = steps,
                   converged = TRUE, iter = iter, message = "converged"))
     }
 
@@ -129,9 +160,10 @@ mode_tangent <- function(sol, inner, outer_idx) {
 # fixed, so one g serves every outer parameter. Writing H^-1 = V V', g sums the
 # second derivative of the gradient along each column of V. That is a five-point
 # stencil of gradients, so this costs 4 gradients per inner parameter. `h` is the
-# largest coordinate change of a step, and is much larger than the step in
+# step along each column of V, in standard deviations of N(x_hat, H^-1), so
+# rescaling the parameters leaves it unchanged. It is much larger than the step in
 # gradient_hessian() because rounding error is divided by h^2 here.
-laml_gradient <- function(model, sol, inner, outer_idx, h = 1e-3) {
+laml_gradient <- function(model, sol, inner, outer_idx, h = 0.01) {
   grad_at <- function(theta) {
     ev <- density_gradient(model, theta)
     if (is.null(ev) || !all(is.finite(ev$gradient))) {
@@ -145,10 +177,9 @@ laml_gradient <- function(model, sol, inner, outer_idx, h = 1e-3) {
   for (i in seq_along(inner)) {
     v <- numeric(length(sol$theta))
     v[inner] <- V[, i]
-    s <- h / max(abs(v))
-    near <- grad_at(sol$theta + s * v) + grad_at(sol$theta - s * v)
-    far <- grad_at(sol$theta + 2 * s * v) + grad_at(sol$theta - 2 * s * v)
-    g <- g + (16 * near - far - 30 * sol$gradient) / (12 * s^2)
+    near <- grad_at(sol$theta + h * v) + grad_at(sol$theta - h * v)
+    far <- grad_at(sol$theta + 2 * h * v) + grad_at(sol$theta - 2 * h * v)
+    g <- g + (16 * near - far - 30 * sol$gradient) / (12 * h^2)
   }
 
   tangents <- matrix(0, length(sol$theta), length(outer_idx))
@@ -182,6 +213,8 @@ exact_mode <- function(model, sol, inner) {
 # A failed solve returns -Inf and leaves the warm start untouched.
 make_objective <- function(model, theta, outer_idx, inner_control = list()) {
   inner <- setdiff(seq_along(theta), outer_idx)
+  settings <- inner_settings(inner_control)
+  steps <- 1e-7
   solves <- 0L
   failures <- 0L
   gradients <- 0L
@@ -191,10 +224,15 @@ make_objective <- function(model, theta, outer_idx, inner_control = list()) {
     start <- theta
     start[outer_idx] <- omega
     solves <<- solves + 1L
-    sol <- do.call(inner_newton,
-                   c(list(model, start, inner), inner_control))
+    sol <- inner_newton(model, start, inner, settings$tol, settings$maxit,
+                        settings$hessian_step, steps)
     gradients <<- gradients + sol$iter * (2L * length(inner) + 1L)
-    if (sol$converged) theta <<- sol$theta else failures <<- failures + 1L
+    if (sol$converged) {
+      theta <<- sol$theta
+      steps <<- sol$steps
+    } else {
+      failures <<- failures + 1L
+    }
     last <<- sol
     sol
   }
@@ -214,7 +252,7 @@ make_objective <- function(model, theta, outer_idx, inner_control = list()) {
         stop("Inner solve failed in the gradient: ", sol$message, call. = FALSE)
       }
       gradients <<- gradients + 4L * length(inner)
-      laml_gradient(model, sol, inner, outer_idx)
+      laml_gradient(model, sol, inner, outer_idx, settings$gradient_step)
     },
     counts = function() c(solves = solves, failures = failures, gradients = gradients)
   )

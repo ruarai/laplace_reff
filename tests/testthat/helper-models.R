@@ -144,3 +144,40 @@ cauchy_mock <- function() {
     }
   )
 }
+
+central_diff <- function(fn, omega, h = 1e-4) {
+  vapply(seq_along(omega), function(j) {
+    e <- replace(numeric(length(omega)), j, h)
+    (fn(omega + e) - fn(omega - e)) / (2 * h)
+  }, numeric(1))
+}
+
+# L(omega) as a function of the outer parameters, which come last in theta. Uses
+# exact curvature, so unlike make_objective() it has no finite-difference noise
+# and can serve as a reference for the gradient.
+exact_laml <- function(model) {
+  N <- length(model$param_unc_names())
+  function(omega) {
+    inner <- seq_len(N - length(omega))
+    theta <- c(numeric(length(inner)), omega)
+    for (i in 1:100) {
+      ev <- model$log_density_hessian(theta)
+      H <- -ev$hessian[inner, inner, drop = FALSE]
+      theta[inner] <- theta[inner] + solve(H, ev$gradient[inner])
+    }
+    ev <- model$log_density_hessian(theta)
+    H <- -ev$hessian[inner, inner, drop = FALSE]
+    ev$val - 0.5 * as.numeric(determinant(H)$modulus)
+  }
+}
+
+# `model` in coordinates z, where the original parameters are d * z. Fitted
+# values are unchanged in the original units, and L moves by a constant.
+rescaled_model <- function(model, d) {
+  mock_model(
+    model$param_unc_names(),
+    val = function(p) model$log_density(p * d),
+    grad = function(p) model$log_density_gradient(p * d)$gradient * d,
+    hess = function(p) model$log_density_hessian(p * d)$hessian * outer(d, d)
+  )
+}

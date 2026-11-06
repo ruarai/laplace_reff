@@ -1,26 +1,21 @@
-central_diff <- function(fn, omega, h = 1e-4) {
-  vapply(seq_along(omega), function(j) {
-    e <- replace(numeric(length(omega)), j, h)
-    (fn(omega + e) - fn(omega - e)) / (2 * h)
-  }, numeric(1))
-}
-
 omegas <- list(c(0, 0), c(1, -0.5), c(1.5, 0.4), c(-0.5, 0.7))
 tight <- list(tol = 1e-10)
 
 test_that("the gradient matches a finite difference of L for a Gaussian", {
   y <- c(-1, 0.5, 2, 3.5)
-  obj <- make_objective(gaussian_mock(y), numeric(6), 5:6, tight)
+  model <- gaussian_mock(y)
+  obj <- make_objective(model, numeric(6), 5:6, tight)
   for (omega in omegas) {
-    expect_equal(obj$gr(omega), central_diff(obj$fn, omega), tolerance = 1e-6)
+    expect_equal(obj$gr(omega), central_diff(exact_laml(model), omega), tolerance = 1e-6)
   }
 })
 
 test_that("the gradient matches a finite difference of L when H depends on x", {
   y <- c(0, 1, 2, 4, 7, 12)
-  obj <- make_objective(poisson_mock(y), numeric(8), 7:8, tight)
+  model <- poisson_mock(y)
+  obj <- make_objective(model, numeric(8), 7:8, tight)
   for (omega in omegas) {
-    expect_equal(obj$gr(omega), central_diff(obj$fn, omega), tolerance = 1e-6)
+    expect_equal(obj$gr(omega), central_diff(exact_laml(model), omega), tolerance = 1e-6)
   }
 })
 
