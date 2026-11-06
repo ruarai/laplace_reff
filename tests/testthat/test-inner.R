@@ -15,17 +15,41 @@ test_that("Newton recovers from a Hessian that is not positive definite", {
 })
 
 test_that("a failed density evaluation shortens the step", {
-  # The Hessian understates the curvature at the start, so the first full
-  # Newton step overshoots into a region where the density errors.
+  # The curvature is low at the start, so the first full Newton step overshoots
+  # into a region where the density errors.
   model <- mock_model(
     c("x", "w"),
-    val = function(p) if (p[1] > 1.5) stop("rejected") else -(p[1] - 1)^2,
-    grad = function(p) c(-2 * (p[1] - 1), 0),
-    hess = function(p) diag(c(if (p[1] < 0) -0.5 else -2, -1))
+    val = function(p) {
+      if (p[1] > 1.5) stop("rejected")
+      if (p[1] < 0) -1 + 2 * p[1] - 0.25 * p[1]^2 else -(p[1] - 1)^2
+    },
+    grad = function(p) {
+      if (p[1] > 1.5) stop("rejected")
+      c(if (p[1] < 0) 2 - 0.5 * p[1] else -2 * (p[1] - 1), 0)
+    },
+    hess = function(p) diag(c(if (p[1] < 0) -0.5 else -2, 0))
   )
   sol <- inner_newton(model, c(-5, 0), 1)
   expect_true(sol$converged)
   expect_equal(sol$theta[1], 1)
+})
+
+test_that("gradient differences reproduce the analytic Hessian", {
+  model <- poisson_mock(c(0, 1, 2, 4))
+  theta <- c(0.1, -0.2, 0.3, 1, 0.5, -0.4)
+  ev <- gradient_hessian(model, theta, 1:4)
+  exact <- model$log_density_hessian(theta)
+  expect_equal(ev$hessian[1:4, ], exact$hessian[1:4, ], tolerance = 1e-8)
+  expect_equal(ev$gradient, exact$gradient)
+  expect_equal(ev$val, exact$val)
+})
+
+test_that("a density error next to theta fails the Hessian", {
+  model <- mock_model(c("x", "w"),
+                      val = function(p) if (p[1] > 1e-6) stop("rejected") else 0,
+                      grad = function(p) c(0, 0),
+                      hess = function(p) diag(2))
+  expect_null(gradient_hessian(model, c(0, 0), 1))
 })
 
 test_that("failures are reported rather than treated as a mode", {

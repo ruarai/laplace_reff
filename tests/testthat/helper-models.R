@@ -4,6 +4,9 @@ mock_model <- function(names_unc, val, grad, hess) {
     param_unc_names = function() names_unc,
     param_names = function(include_tp = FALSE, include_gq = FALSE) names_unc,
     log_density = function(theta, propto, jacobian) val(theta),
+    log_density_gradient = function(theta, propto, jacobian) {
+      list(val = val(theta), gradient = grad(theta))
+    },
     log_density_hessian = function(theta, propto, jacobian) {
       list(val = val(theta), gradient = grad(theta), hessian = hess(theta))
     },

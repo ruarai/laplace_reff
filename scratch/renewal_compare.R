@@ -5,7 +5,7 @@ devtools::load_all()
 
 set.seed(1)
 
-n <- 180
+n <- 365
 g <- 4
 d <- 8
 seed_infections <- 50
@@ -28,7 +28,7 @@ for (t in 1:n) {
 y <- rnbinom(n, mu = cases, size = phi_true)
 
 data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
-             m = 40, c = 1.25)
+             m = 120, c = 1.25)
 
 # Fit ---------------------------------------------------------------------
 
@@ -38,10 +38,10 @@ laml_time <- system.time({
 })
 
 conditional <- laml_draws(fit, 2000)
-corrected <- laml_draws(fit, 100, corrected = TRUE)
+# corrected <- laml_draws(fit, 150, corrected = TRUE)
 
 
-corrected |> 
+conditional |> 
   tidybayes::spread_draws(cases[t]) |> 
   
   ggplot(aes(x = t, y = cases)) +

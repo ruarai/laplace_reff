@@ -28,10 +28,27 @@ test_that("the gradient is stable across step sizes", {
   y <- c(0, 1, 2, 4, 7, 12)
   model <- poisson_mock(y)
   sol <- inner_newton(model, c(numeric(6), 1, -0.5), 1:6, tol = 1e-10)
-  grads <- sapply(c(1e-3, 1e-4, 1e-5), function(h) {
+  grads <- sapply(c(1e-2, 1e-3, 3e-4), function(h) {
     laml_gradient(model, sol, 1:6, 7:8, h = h)
   })
   expect_equal(grads[, 1], grads[, 3], tolerance = 1e-5)
+})
+
+test_that("the gradient does not depend on the number of outer parameters", {
+  y <- c(0, 1, 2, 4, 7, 12)
+  obj <- make_objective(poisson_mock(y), numeric(8), 7:8, tight)
+  obj$fn(c(1, -0.5))
+  before <- obj$counts()[["gradients"]]
+  obj$gr(c(1, -0.5))
+  expect_equal(obj$counts()[["gradients"]] - before, 4 * 6)
+})
+
+test_that("a failed gradient next to the mode is an error", {
+  model <- poisson_mock(c(0, 1, 2))
+  sol <- inner_newton(model, c(numeric(3), 1, -0.5), 1:3)
+  broken <- model
+  broken$log_density_gradient <- function(theta, propto, jacobian) stop("rejected")
+  expect_error(laml_gradient(broken, sol, 1:3, 4:5), "next to the inner mode")
 })
 
 test_that("the gradient reuses the mode from the objective at the same omega", {

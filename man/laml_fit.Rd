@@ -40,7 +40,8 @@ A list of class `laml_fit`: `outer` and `inner` estimates, the full
   the optimum), `H`, `outer_hessian` (-d2L/domega2),
   `outer_vcov` and `outer_se` (all `NA`, with a warning, if `outer_hessian`
   is not positive definite), `converged`, `counts` (inner solves, failed
-  solves and Hessian evaluations), the `nlminb` result as `opt`, and the
+  solves and approximate gradient evaluations), the `nlminb` result as
+  `opt`, and the
   `model` and `inner_control` used.
   Use [laml_draws()] for inference.
 }
@@ -48,4 +49,9 @@ A list of class `laml_fit`: `outer` and `inner` estimates, the full
 Optimises the outer parameters with `nlminb()` and integrates the others
 out with a Laplace approximation at the inner mode. All values are on
 Stan's unconstrained scale, with Jacobian adjustments included.
+}
+\details{
+Hessians during the fit come from finite differences of Stan's gradients,
+which is much faster than autodiff for large models. `H` and `logml` use
+one autodiff Hessian at the optimum.
 }

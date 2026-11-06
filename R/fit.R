@@ -4,6 +4,10 @@
 #' out with a Laplace approximation at the inner mode. All values are on
 #' Stan's unconstrained scale, with Jacobian adjustments included.
 #'
+#' Hessians during the fit come from finite differences of Stan's gradients,
+#' which is much faster than autodiff for large models. `H` and `logml` use
+#' one autodiff Hessian at the optimum.
+#'
 #' @param model Path to a `.stan` file, or a model from [laml_model()].
 #' @param data Data for `laml_model()`. Used only when `model` is a path.
 #' @param outer Names of the outer parameters. A container name selects all
@@ -21,7 +25,8 @@
 #'   the optimum), `H`, `outer_hessian` (-d2L/domega2),
 #'   `outer_vcov` and `outer_se` (all `NA`, with a warning, if `outer_hessian`
 #'   is not positive definite), `converged`, `counts` (inner solves, failed
-#'   solves and Hessian evaluations), the `nlminb` result as `opt`, and the
+#'   solves and approximate gradient evaluations), the `nlminb` result as
+#'   `opt`, and the
 #'   `model` and `inner_control` used.
 #'   Use [laml_draws()] for inference.
 #' @export
@@ -59,6 +64,7 @@ laml_fit <- function(model, data = NULL, outer, init = NULL,
   outer_names <- names_unc[outer_idx]
   gradient <- stats::setNames(objective$gr(opt$par), outer_names)
   uncertainty <- outer_uncertainty(objective$gr, opt$par, outer_names)
+  sol <- exact_mode(model, sol, seq_along(names_unc)[-outer_idx])
 
   structure(
     list(
@@ -118,6 +124,7 @@ outer_uncertainty <- function(gr, omega, names, h = 1e-3) {
 #' `omega`, and draws `x ~ N(x_hat(omega), H(omega)^-1)`. This costs one inner
 #' solve per draw. An `omega` where the solve fails is drawn again, with a
 #' warning, which truncates the outer distribution to where `L` is defined.
+#' `H` at these `omega` comes from finite differences of Stan's gradients.
 #'
 #' Draws use R's random number generator, so `set.seed()` makes them
 #' reproducible, `_rng` generated quantities included.

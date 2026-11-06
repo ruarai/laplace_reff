@@ -25,6 +25,7 @@ also carry outer uncertainty: each one draws
 `omega`, and draws `x ~ N(x_hat(omega), H(omega)^-1)`. This costs one inner
 solve per draw. An `omega` where the solve fails is drawn again, with a
 warning, which truncates the outer distribution to where `L` is defined.
+`H` at these `omega` comes from finite differences of Stan's gradients.
 }
 \details{
 Draws use R's random number generator, so `set.seed()` makes them
