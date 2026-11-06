@@ -47,7 +47,8 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100) {
         return(inner_failure(theta, iter,
                              "H is not positive definite at a stationary point"))
       }
-      return(list(theta = theta, val = ev$val, H = H, R = R,
+      return(list(theta = theta, val = ev$val, gradient = ev$gradient,
+                  hessian = ev$hessian, H = H, R = R,
                   converged = TRUE, iter = iter, message = "converged"))
     }
 
@@ -81,12 +82,45 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100) {
 # L(omega) = l(x_hat, omega) - 0.5 log|H|
 laml_value <- function(sol) sol$val - sum(log(diag(sol$R)))
 
+# J = dx_hat/domega = H^-1 l_xomega, one column per outer parameter.
+mode_tangent <- function(sol, inner, outer_idx) {
+  chol2inv(sol$R) %*% sol$hessian[inner, outer_idx, drop = FALSE]
+}
+
+# dL/domega at a converged solve. With t_j = (dx_hat/domega_j, e_j), the
+# gradient is l_omega_j - 0.5 D_j, where D_j = d log|H| along t_j. D_j is taken
+# as tr(H^-1 dH), so H need not stay positive definite at the two Hessians
+# either side of the mode. `h` is the largest coordinate change of a step.
+laml_gradient <- function(model, sol, inner, outer_idx, h = 1e-5) {
+  H_inv <- chol2inv(sol$R)
+  dx <- mode_tangent(sol, inner, outer_idx)
+
+  H_at <- function(theta) {
+    ev <- density_hessian(model, theta)
+    if (is.null(ev)) stop("Hessian failed next to the inner mode.", call. = FALSE)
+    -ev$hessian[inner, inner, drop = FALSE]
+  }
+
+  D <- vapply(seq_along(outer_idx), function(j) {
+    tangent <- numeric(length(sol$theta))
+    tangent[inner] <- dx[, j]
+    tangent[outer_idx[j]] <- 1
+    step <- h / max(abs(tangent)) * tangent
+    sum(H_inv * (H_at(sol$theta + step) - H_at(sol$theta - step))) /
+      (2 * h / max(abs(tangent)))
+  }, numeric(1))
+
+  sol$gradient[outer_idx] - 0.5 * D
+}
+
 # Objective with a warm start: each solve begins at the last converged mode.
 # A failed solve returns -Inf and leaves the warm start untouched.
 make_objective <- function(model, theta, outer_idx, inner_control = list()) {
   inner <- setdiff(seq_along(theta), outer_idx)
   solves <- 0L
   failures <- 0L
+  hessians <- 0L
+  last <- NULL
 
   solve_at <- function(omega) {
     start <- theta
@@ -94,7 +128,9 @@ make_objective <- function(model, theta, outer_idx, inner_control = list()) {
     solves <<- solves + 1L
     sol <- do.call(inner_newton,
                    c(list(model, start, inner), inner_control))
+    hessians <<- hessians + sol$iter
     if (sol$converged) theta <<- sol$theta else failures <<- failures + 1L
+    last <<- sol
     sol
   }
 
@@ -104,6 +140,17 @@ make_objective <- function(model, theta, outer_idx, inner_control = list()) {
       sol <- solve_at(omega)
       if (sol$converged) laml_value(sol) else -Inf
     },
-    counts = function() c(solves = solves, failures = failures)
+    # Reuses the mode from `fn` when called at the same omega. The omega is
+    # read from the solve because nlminb may overwrite the vector it passes.
+    gr = function(omega) {
+      same <- identical(last$theta[outer_idx], as.numeric(omega))
+      sol <- if (same) last else solve_at(omega)
+      if (!sol$converged) {
+        stop("Inner solve failed in the gradient: ", sol$message, call. = FALSE)
+      }
+      hessians <<- hessians + 2L * length(outer_idx)
+      laml_gradient(model, sol, inner, outer_idx)
+    },
+    counts = function() c(solves = solves, failures = failures, hessians = hessians)
   )
 }

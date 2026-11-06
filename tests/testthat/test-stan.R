@@ -17,8 +17,7 @@ test_that("a compiled Gaussian model matches the analytic answer", {
   skip_without_bridgestan()
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
   fit <- laml_fit(stan_copy("gaussian.stan"), list(n = length(y), y = y),
-                  outer = c("m", "s"),
-                  outer_control = list(reltol = 1e-12))
+                  outer = c("m", "s"))
   v <- mean((y - mean(y))^2)
   expect_equal(fit$outer[["m"]], mean(y), tolerance = 1e-3)
   expect_equal(fit$outer[["s"]], 0.5 * log(v - 1), tolerance = 1e-3)
@@ -43,8 +42,7 @@ test_that("constrained outer parameters are optimised on the log scale", {
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
   model <- laml_model(stan_copy("gaussian_bounded.stan"),
                       list(n = length(y), y = y))
-  fit <- laml_fit(model, outer = c("m", "sigma"),
-                  outer_control = list(reltol = 1e-12))
+  fit <- laml_fit(model, outer = c("m", "sigma"))
   # The Jacobian comes from Stan: flat on sigma gives a density in log sigma
   # of p(y | sigma) * sigma, and the mode shifts accordingly.
   profile <- function(ls) {
@@ -53,4 +51,15 @@ test_that("constrained outer parameters are optimised on the log scale", {
   best <- optimize(profile, c(-3, 5), maximum = TRUE)$maximum
   expect_equal(fit$outer[["sigma"]], best, tolerance = 1e-3)
   expect_equal(fit$estimate[["sigma"]], exp(best), tolerance = 1e-3)
+})
+
+test_that("draws keep Stan's constraints and generated quantities", {
+  skip_without_bridgestan()
+  y <- c(-3, -1, 0.5, 2, 3.5, 6)
+  model <- laml_model(stan_copy("gaussian.stan"), list(n = length(y), y = y))
+  fit <- laml_fit(model, outer = c("m", "s"))
+  draws <- laml_draws(fit, 50, corrected = TRUE)
+  expect_equal(draws$sd_x, exp(draws$s))
+  expect_equal(draws$twice_m, 2 * draws$m)
+  expect_gt(sd(draws$m_rng - draws$m), 0)
 })

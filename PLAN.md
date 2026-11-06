@@ -68,15 +68,7 @@ Start with directional finite differences, which need no custom C++:
 
 **Done when:** conditional and corrected intervals have been compared with HMC.
 
-### Phase 4: Generalise
-
-1. Wrap the code in `laml_fit()` with `fit`, `summary` and `draws` outputs.
-2. Report inner non-convergence, a non-positive-definite `H`, sensitivity to starting values and outer parameters at a boundary.
-3. Test a second, simpler model with a known answer, such as a GLMM compared against `mgcv` or `glmmTMB`.
-
-**Done when:** both models run through the same interface, and the second model matches its reference.
-
-### Phase 5 (optional): Exact third-order gradient
+### Phase 4 (optional): Exact third-order gradient
 
 Do this only if the outer dimension grows or Phase 2 proves too noisy.
 

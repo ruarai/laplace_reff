@@ -1,7 +1,6 @@
 test_that("laml_fit recovers the analytic marginal maximum", {
   y <- c(-3, -1, 0.5, 2, 3.5, 6)
-  fit <- laml_fit(gaussian_mock(y), outer = c("m", "s"),
-                  outer_control = list(reltol = 1e-12))
+  fit <- laml_fit(gaussian_mock(y), outer = c("m", "s"))
   v <- mean((y - mean(y))^2)
 
   expect_true(fit$converged)

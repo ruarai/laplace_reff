@@ -27,7 +27,7 @@ of its unconstrained elements, and `"z.1"` selects one.}
 \item{inner_control}{List with `tol` (on the maximum absolute gradient) and
 `maxit` for the Newton solver.}
 
-\item{outer_control}{Passed to `optim()` as `control`.}
+\item{outer_control}{Passed to `nlminb()` as `control`.}
 
 \item{seed}{Seed for the model and for generated quantities.}
 }
@@ -36,11 +36,16 @@ A list of class `laml_fit`: `outer` and `inner` estimates, the full
   unconstrained `theta`, `estimate` (a one-row `posterior::draws_df` of the
   constrained parameters, transformed parameters and generated quantities
   at the optimum; `_rng` quantities are a single random draw),
-  `logml` (L at the optimum, without constants), `H`, `converged`, `counts`,
-  and the `optim` result.
+  `logml` (L at the optimum, without constants), `gradient` (dL/domega at
+  the optimum), `H`, `outer_hessian` (-d2L/domega2),
+  `outer_vcov` and `outer_se` (all `NA`, with a warning, if `outer_hessian`
+  is not positive definite), `converged`, `counts` (inner solves, failed
+  solves and Hessian evaluations), the `nlminb` result as `opt`, and the
+  `model` and `inner_control` used.
+  Use [laml_draws()] for inference.
 }
 \description{
-Optimises the outer parameters with Nelder-Mead and integrates the others
+Optimises the outer parameters with `nlminb()` and integrates the others
 out with a Laplace approximation at the inner mode. All values are on
 Stan's unconstrained scale, with Jacobian adjustments included.
 }
