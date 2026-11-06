@@ -1,16 +1,12 @@
-# Fit the renewal model to simulated data with a known R(t).
-# Run from the project root.
 
 devtools::load_all()
 
-set.seed(1)
-
 # Simulate ----------------------------------------------------------------
 
-n <- 60
+n <- 120
 g <- 4  # generation interval length
 d <- 8   # reporting delay length
-seed_infections <- 30
+seed_infections <- 50
 phi_true <- 20
 
 gen <- dgamma(1:g, 3, 0.6)
@@ -18,7 +14,9 @@ gen <- gen / sum(gen)
 delay <- dgamma(0:(d - 1) + 0.5, 3, 0.8)
 delay <- delay / sum(delay)
 
-R_true <- 1.3 - 0.5 * plogis((1:n - 30) / 5)
+R_true <- 1.0 + 0.2 * sin((1:n) / 10)
+
+plot(R_true)
 
 s <- max(g, d)
 inf <- rep(seed_infections, s + n)
@@ -33,8 +31,8 @@ plot(y)
 
 data <- list(
   n = n, y = y, g = g, d = d, gen = gen, delay = delay,
-  m = 20,  # HSGP basis functions
-  c = 3.0  # HSGP boundary factor
+  m = 40,
+  c = 1.5
 )
 
 # Fit ---------------------------------------------------------------------
@@ -45,6 +43,8 @@ fit <- laml_fit(model, outer = c("alpha", "rho", "log_phi"))
 
 library(tidyverse)
 
+fit$outer
+
 fit$estimate |> 
   tidybayes::spread_draws(log_R[t]) |> 
   
@@ -53,4 +53,14 @@ fit$estimate |>
   
   geom_line(aes(x = t, y = log_R, colour = "True"),
             tibble(t = 1:length(R_true), log_R = log(R_true)))
+
+
+fit$estimate |> 
+  tidybayes::spread_draws(cases[t]) |> 
+  
+  ggplot() +
+  geom_line(aes(x = t, y = cases, colour = "Estimate")) +
+  
+  geom_line(aes(x = t, y = y, colour = "True"),
+            tibble(t = 1:length(y), y = y))
 
