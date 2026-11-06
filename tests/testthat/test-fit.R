@@ -41,7 +41,7 @@ test_that("the estimate is a one-row draws_df with Stan variable names", {
 })
 
 test_that("BridgeStan names become posterior names", {
-  expect_equal(stan_variable_names(c("mu", "z.1", "a.2.3")),
+  expect_equal(clean_variable_names(c("mu", "z.1", "a.2.3")),
                c("mu", "z[1]", "a[2,3]"))
 })
 

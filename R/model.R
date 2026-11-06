@@ -32,6 +32,8 @@ laml_model <- function(stan_file, data, seed = 1L) {
 
 # Positions of outer parameters in the unconstrained vector. A name matches
 # itself ("z.1") or every element of a container ("z").
+# TODO: change this so that it matches normal indexing notation rather than
+# bridgestan's weird version.
 outer_index <- function(model, outer) {
   if (length(outer) == 0) stop("`outer` must name at least one parameter.")
   names_unc <- model$param_unc_names()

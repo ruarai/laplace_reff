@@ -12,7 +12,6 @@
 #' @param data Data for `laml_model()`. Used only when `model` is a path.
 #' @param outer Names of the outer parameters. A container name selects all
 #'   of its unconstrained elements, and `"z.1"` selects one.
-#' @param init Unconstrained starting vector. Defaults to zeros.
 #' @param inner_control List with `tol` (on the maximum absolute gradient) and
 #'   `maxit` for the Newton solver.
 #' @param outer_control Passed to `nlminb()` as `control`.
@@ -30,56 +29,63 @@
 #'   `model` and `inner_control` used.
 #'   Use [laml_draws()] for inference.
 #' @export
-laml_fit <- function(model, data = NULL, outer, init = NULL,
+laml_fit <- function(model, data = NULL, outer,
                      inner_control = list(), outer_control = list(),
                      seed = 1L) {
   if (is.character(model)) model <- laml_model(model, data, seed)
 
   names_unc <- model$param_unc_names()
-  if (is.null(init)) init <- numeric(length(names_unc))
-  if (length(init) != length(names_unc)) {
-    stop("`init` must have length ", length(names_unc), ".")
-  }
+
+  # TODO: handle init with constrained inputs, ala cmdstanr
+  init <- numeric(length(names_unc))
+
   outer_idx <- outer_index(model, outer)
 
   objective <- make_objective(model, init, outer_idx, inner_control)
+
   if (!is.finite(objective$fn(init[outer_idx]))) {
-    stop("Inner solve failed at `init`: ",
-         objective$solve(init[outer_idx])$message)
+    stop("Inner solve failed at `init`: ", objective$solve(init[outer_idx])$message)
   }
 
-  opt <- stats::nlminb(init[outer_idx],
-                       function(omega) -objective$fn(omega),
-                       function(omega) -objective$gr(omega),
-                       control = outer_control)
+  opt <- stats::nlminb(
+    init[outer_idx],
+    function(omega) -objective$fn(omega),
+    function(omega) -objective$gr(omega),
+    control = outer_control
+  )
 
-  sol <- objective$solve(opt$par)
-  if (!sol$converged) {
-    stop("Inner solve failed at the outer optimum: ", sol$message)
+  inner_sol <- objective$solve(opt$par)
+
+  if (!inner_sol$converged) {
+    stop("Inner solve failed at the outer optimum: ", inner_sol$message)
   }
-  converged <- opt$convergence == 0
-  if (!converged) warning("Outer optimiser did not converge: ", opt$message)
+  
+  if (opt$convergence != 0) {
+    warning("Outer optimiser did not converge: ", opt$message)
+  }
 
-  theta <- stats::setNames(sol$theta, names_unc)
+  theta <- stats::setNames(inner_sol$theta, names_unc)
   outer_names <- names_unc[outer_idx]
+  
   gradient <- stats::setNames(objective$gr(opt$par), outer_names)
   uncertainty <- outer_uncertainty(objective$gr, opt$par, outer_names)
-  sol <- exact_mode(model, sol, seq_along(names_unc)[-outer_idx])
+
+  inner_sol_exact <- exact_mode(model, inner_sol, seq_along(names_unc)[-outer_idx])
 
   structure(
     list(
       outer = theta[outer_idx],
       inner = theta[-outer_idx],
       theta = theta,
-      estimate = constrained_draws(model, matrix(sol$theta, nrow = 1),
+      estimate = constrained_draws(model, matrix(inner_sol_exact$theta, nrow = 1),
                                    model$new_rng(seed)),
-      logml = laml_value(sol),
+      logml = laml_value(inner_sol_exact),
       gradient = gradient,
-      H = sol$H,
+      H = inner_sol_exact$H,
       outer_hessian = uncertainty$hessian,
       outer_vcov = uncertainty$vcov,
       outer_se = sqrt(diag(uncertainty$vcov)),
-      converged = converged,
+      converged = opt$convergence == 0,
       counts = objective$counts(),
       opt = opt,
       model = model,
@@ -181,7 +187,7 @@ laml_draws <- function(fit, n = 1000, corrected = FALSE) {
 }
 
 # BridgeStan writes "a.1.2" where posterior expects "a[1,2]".
-stan_variable_names <- function(names) {
+clean_variable_indices <- function(names) {
   has_index <- grepl(".", names, fixed = TRUE)
   stem <- sub("\\..*$", "", names[has_index])
   index <- gsub(".", ",", sub("^[^.]*\\.", "", names[has_index]), fixed = TRUE)
@@ -196,6 +202,6 @@ constrained_draws <- function(model, theta, rng) {
   })
   names <- model$param_names(include_tp = TRUE, include_gq = TRUE)
   values <- matrix(values, nrow(theta), length(names), byrow = TRUE,
-                   dimnames = list(NULL, stan_variable_names(names)))
+                   dimnames = list(NULL, clean_variable_indices(names)))
   posterior::as_draws_df(values)
 }
