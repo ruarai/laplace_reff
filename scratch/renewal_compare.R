@@ -1,6 +1,8 @@
 
 devtools::load_all()
 
+library(tidyverse)
+
 # Simulate ----------------------------------------------------------------
 
 set.seed(1)
@@ -37,7 +39,7 @@ data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
 # Fit ---------------------------------------------------------------------
 
 laml_time <- system.time({
-  fit <- laml_fit("inst/model_renewal.stan", data,
+  fit <- laml_fit("scratch/model_renewal.stan", data,
                   outer = c("alpha", "rho", "log_phi"))
 })
 
@@ -46,13 +48,14 @@ conditional <- laml_draws(fit, 2000)
 
 
 conditional |> 
-  tidybayes::spread_draws(cases[t]) |> 
+  tidybayes::spread_draws(cases[t], log_phi) |> 
+  mutate(cases = rnbinom(n(), size = exp(log_phi), mu = cases)) |> 
   
   ggplot(aes(x = t, y = cases)) +
   fastribbon::stat_fastribbon(geom = "ribbon") +
   
   geom_line(data = tibble(t = 1:length(y), cases = y),
-            alpha = 0.3) +
+            alpha = 0.5) +
   
   scale_fill_brewer() +
   
@@ -71,7 +74,7 @@ conditional |>
   theme_bw()
 
 
-stan <- cmdstanr::cmdstan_model("inst/model_renewal.stan", dir = tempdir())
+stan <- cmdstanr::cmdstan_model("scratch/model_renewal.stan", dir = tempdir())
 hmc_time <- system.time({
   hmc <- stan$sample(data = data, chains = 4, parallel_chains = 4,
                      iter_warmup = 1000, iter_sampling = 1000, seed = 1,

@@ -4,3 +4,5 @@ lapland.Rproj
 *.o
 *.hpp
 .Rhistory
+
+/scratch/
