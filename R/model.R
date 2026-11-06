@@ -45,8 +45,9 @@ get_outer_param_indices <- function(model, outer) {
 # stan_json() and list_to_array() are copied from cmdstanr 0.9.0
 # (https://github.com/stan-dev/cmdstanr). The only changes are that
 # write_stan_json() became stan_json(), which returns the JSON as a string
-# instead of writing a file, and that `%||%` in list_to_array() is written out,
-# as it needs R >= 4.4. cmdstanr's licence applies to these two functions:
+# instead of writing a file, that an empty list gives "{}" rather than "[]", and
+# that `%||%` in list_to_array() is written out, as it needs R >= 4.4. cmdstanr's
+# licence applies to these two functions:
 #
 # Copyright (c) 2019, Stan Developers and their Assignees
 #
@@ -79,6 +80,9 @@ stan_json <- function(data, always_decimal = FALSE) {
   if (!is.list(data)) {
     stop("'data' must be a list.", call. = FALSE)
   }
+
+  # toJSON() writes an unnamed empty list as an array, which Stan rejects.
+  if (length(data) == 0) return("{}")
 
   data_names <- names(data)
   if (length(data) > 0 &&

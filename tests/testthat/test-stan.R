@@ -26,6 +26,12 @@ test_that("a compiled Gaussian model matches the analytic answer", {
   expect_equal(fit$estimate[["twice_m"]], 2 * fit$estimate[["m"]])
 })
 
+test_that("a model without data fits from an empty list", {
+  skip_without_bridgestan()
+  fit <- laml_fit(stan_copy("gaussian_no_data.stan"), list(), outer = "m")
+  expect_equal(fit$outer[["m"]], 1, tolerance = 1e-3)
+})
+
 test_that("the seed makes random generated quantities reproducible", {
   skip_without_bridgestan()
   y <- c(-3, -1, 0.5, 2, 3.5, 6)

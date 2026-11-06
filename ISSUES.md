@@ -20,15 +20,10 @@ fitting instead of shortening the step.
 
 Reject nonfinite trial values before comparing them.
 
-## 3. [P2] Empty data lists cannot initialize data-free models
+## 3. [P2] Empty data lists cannot initialize data-free models (resolved)
 
-Location: [R/model.R:115](R/model.R#L115).
-
-The data serializer converts `list()` to `[]`. BridgeStan rejects this with
-"Expecting JSON object, found array." The same compiled model fits successfully
-with `"{}"`.
-
-Serialize an empty data list as an object.
+`stan_json()` now serializes an empty list as `{}`. A compiled data-free model
+fits from `list()`.
 
 ## 4. [P2] The gradient tests use an insufficiently accurate reference (resolved)
 
