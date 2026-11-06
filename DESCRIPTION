@@ -1,0 +1,18 @@
+Package: lapland
+Title: Nested Laplace Fitting for Stan Models
+Version: 0.0.0.9000
+Authors@R: person("Ruarai", "Tobin", email = "ruarai.tobin@unimelb.edu.au", role = c("aut", "cre"))
+Description: Optimises outer parameters of a Stan model and integrates the
+    remaining parameters out with a Laplace approximation at the inner mode.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    bridgestan,
+    jsonlite,
+    posterior
+Suggests:
+    testthat (>= 3.0.0)
+Remotes:
+    roualdes/bridgestan/R
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

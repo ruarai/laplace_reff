@@ -50,8 +50,6 @@ Inference uses `x ~ N(x̂, H⁻¹)` conditional on `ω̂`. Derived quantities co
 3. Write a damped Newton inner solver, warm-started from the previous mode. Handle a non-positive-definite Hessian explicitly.
 4. Compute `L(ω)` and optimise it with Nelder-Mead.
 
-**Done when:** `ω̂`, the inner mode and R(t) match a HMC fit within agreed tolerances, and runtime is lower.
-
 ### Phase 2: Outer gradient
 
 Start with directional finite differences, which need no custom C++:

@@ -1,2 +1,5 @@
 laplace_reff.Rproj
 .Rproj.user
+*.so
+*.o
+*.hpp
