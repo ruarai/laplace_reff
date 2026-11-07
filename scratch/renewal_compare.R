@@ -10,7 +10,7 @@ set.seed(1)
 n <- 365 * 2
 g <- 4
 d <- 8
-seed_infections <- 5
+seed_infections <- 500
 phi_true <- 10
 
 gen <- dgamma(1:g, 3, 0.6)
@@ -34,7 +34,7 @@ y <- rnbinom(n, mu = cases, size = phi_true)
 plot(y, type = "l")
 
 data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
-             m = round(n / 20), c = 1.25)
+             m = round(n / 10), c = 1.25)
 
 # Fit ---------------------------------------------------------------------
 

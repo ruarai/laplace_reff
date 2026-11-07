@@ -2,12 +2,12 @@
 laml_model <- function(stan_file, data, seed = 1L) {
   if (is.list(data)) data <- stan_json(data)
 
-  model <- bridgestan::StanModel$new(
+  model <- suppress_long_path_warning(bridgestan::StanModel$new(
     stan_file, as.character(data), seed,
     stanc_args = paste0("--include-paths=", dirname(normalizePath(stan_file))),
 
     make_args = "BRIDGESTAN_AD_HESSIAN=true", warn = FALSE
-  )
+  ))
 
   # make will not rebuild an up-to-date library, so an old finite-difference
   # build would otherwise be used silently.
@@ -16,6 +16,16 @@ laml_model <- function(stan_file, data, seed = 1L) {
          "Delete the compiled `_model.so` file and try again.", call. = FALSE)
   }
   model
+}
+
+# BridgeStan calls tools::file_ext() on `data`, and basename() warns when a JSON
+# string is too long to be a path. The string is still used correctly.
+suppress_long_path_warning <- function(expr) {
+  withCallingHandlers(expr, warning = function(w) {
+    if (startsWith(conditionMessage(w), "expanded path length")) {
+      invokeRestart("muffleWarning")
+    }
+  })
 }
 
 # Positions of outer parameters in the unconstrained vector. A name matches
