@@ -40,11 +40,13 @@ data <- list(n = n, y = y, g = g, d = d, gen = gen, delay = delay,
 
 laml_time <- system.time({
   fit <- laml_fit("scratch/model_renewal.stan", data,
-                  outer = c("alpha", "rho", "log_phi"))
+                  outer = c("alpha", "rho"))
 })
 
 conditional <- laml_draws(fit, 2000)
-corrected <- laml_draws(fit, 150, corrected = TRUE)
+corrected <- laml_draws(fit, 1000, corrected = TRUE)
+
+bayesplot::mcmc_hist(corrected, names(fit$outer))
 
 
 conditional |> 
