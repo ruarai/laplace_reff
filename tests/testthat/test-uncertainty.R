@@ -73,7 +73,10 @@ test_that("a flat outer direction warns and blocks corrected draws", {
                      val = function(p) -p[1]^2,
                      grad = function(p) c(-2 * p[1], 0),
                      hess = function(p) diag(c(-2, 0)))
-  expect_warning(fit <- fit_model(flat, outer = "w"), "not positive definite")
+  warnings <- capture_warnings(fit <- fit_model(flat, outer = "w"))
+  expect_match(warnings, "not positive definite", all = FALSE)
+  expect_match(warnings, "could not be checked", all = FALSE)
+  expect_false(fit$converged)
   expect_true(is.na(fit$outer_se[["w"]]))
   expect_equal(posterior::ndraws(laml_draws(fit, 3)), 3)
   expect_error(laml_draws(fit, 3, corrected = TRUE), "needs `outer_vcov`")
@@ -88,6 +91,9 @@ test_that("a failed gradient during the outer Hessian keeps the fit", {
                       },
                       grad = function(p) c(-2 * p[1], -2 * p[2]),
                       hess = function(p) diag(c(-2, -2)))
-  expect_warning(fit <- fit_model(model, outer = "w"), "not positive definite")
+  warnings <- capture_warnings(fit <- fit_model(model, outer = "w"))
+  expect_match(warnings, "not positive definite", all = FALSE)
+  expect_match(warnings, "could not be checked", all = FALSE)
+  expect_false(fit$converged)
   expect_equal(fit$outer[["w"]], 0, tolerance = 1e-6)
 })

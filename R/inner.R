@@ -59,16 +59,22 @@ gradient_hessian <- function(model, theta, inner, h = 1e-7) {
 
 chol_or_null <- function(H) tryCatch(chol(H), error = function(e) NULL)
 
-# Cholesky factor of H + tau I for the smallest tau tried that is positive
-# definite. Used for step directions only.
-damped_chol <- function(H) {
-  tau <- 1e-6 * max(1, abs(diag(H)))
-  for (i in 1:40) {
-    R <- chol_or_null(H + diag(tau, nrow(H)))
-    if (!is.null(R)) return(R)
-    tau <- tau * 10
-  }
-  NULL
+# Newton direction and its distance sqrt(g' H^-1 g) when H is not positive
+# definite. H is scaled to a unit diagonal, then its eigenvalues are replaced by
+# their magnitudes, so the result moves with linear rescaling of the parameters.
+# Only a zero diagonal, which gives no scale, falls back to 1. Eigenvalues are
+# floored relative to the largest, to bound the step along flat directions.
+damped_direction <- function(H, g) {
+  d <- abs(diag(H))
+  d[d == 0] <- 1
+  s <- 1 / sqrt(d)
+  A <- H * outer(s, s)
+  if (!all(is.finite(A))) return(NULL)
+  e <- eigen(A, symmetric = TRUE)
+  largest <- max(abs(e$values))
+  l <- if (largest > 0) pmax(abs(e$values), 1e-6 * largest) else rep(1, length(d))
+  z <- crossprod(e$vectors, s * g)
+  list(step = s * drop(e$vectors %*% (z / l)), distance = sqrt(sum(z^2 / l)))
 }
 
 inner_failure <- function(theta, iter, message) {
@@ -77,7 +83,8 @@ inner_failure <- function(theta, iter, message) {
 
 # Damped Newton on the inner coordinates of `theta`, holding the rest fixed.
 # Converges on the Newton decrement sqrt(g' H^-1 g), the distance to the mode
-# under N(x_hat, H^-1), and only at a point where H is positive definite.
+# under N(x_hat, H^-1), and only at a point where H is positive definite. Where H
+# is not, damped_direction() stands in for H.
 #
 # `steps` are the differences for the first Hessian. Later ones use
 # hessian_step / sqrt(diag(H)) from the Hessian before. These are returned, so
@@ -104,12 +111,16 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
     if (all(diag(H) > 0)) steps <- hessian_step / sqrt(diag(H))
 
     R <- chol_or_null(H)
-    distance <- if (is.null(R)) {
-      max(abs(g))
+    if (is.null(R)) {
+      direction <- damped_direction(H, g)
+      if (is.null(direction)) {
+        return(inner_failure(theta, iter, "could not damp H to positive definite"))
+      }
     } else {
-      sqrt(sum(backsolve(R, g, transpose = TRUE)^2))
+      z <- backsolve(R, g, transpose = TRUE)
+      direction <- list(step = backsolve(R, z), distance = sqrt(sum(z^2)))
     }
-    if (distance < tol) {
+    if (direction$distance < tol) {
       if (is.null(R)) {
         return(inner_failure(theta, iter,
                              "H is not positive definite at a stationary point"))
@@ -119,11 +130,7 @@ inner_newton <- function(model, theta, inner, tol = 1e-8, maxit = 100,
                   converged = TRUE, iter = iter, message = "converged"))
     }
 
-    if (is.null(R)) R <- damped_chol(H)
-    if (is.null(R)) {
-      return(inner_failure(theta, iter, "could not damp H to positive definite"))
-    }
-    step <- backsolve(R, backsolve(R, g, transpose = TRUE))
+    step <- direction$step
 
     # Backtracking with slack for rounding error in the density close to the
     # mode, where the expected gain is below its resolution.

@@ -145,6 +145,28 @@ cauchy_mock <- function() {
   )
 }
 
+# Two rotated Cauchy-shaped inner coordinates: the mode is 0, and H is not
+# positive definite far from it. The rotation gives H off-diagonal terms.
+cauchy_pair_mock <- function() {
+  Q <- qr.Q(qr(matrix(c(1, 2, 3, -1), 2)))
+  rotate <- function(p) drop(Q %*% p[1:2])
+  mock_model(
+    c("a", "b", "w"),
+    val = function(p) -sum(log1p(rotate(p)^2)) - p[3]^2,
+    grad = function(p) {
+      x <- rotate(p)
+      c(drop(crossprod(Q, -2 * x / (1 + x^2))), -2 * p[3])
+    },
+    hess = function(p) {
+      x <- rotate(p)
+      h <- matrix(0, 3, 3)
+      h[1:2, 1:2] <- crossprod(Q, Q * (-2 * (1 - x^2) / (1 + x^2)^2))
+      h[3, 3] <- -2
+      h
+    }
+  )
+}
+
 central_diff <- function(fn, omega, h = 1e-4) {
   vapply(seq_along(omega), function(j) {
     e <- replace(numeric(length(omega)), j, h)

@@ -8,6 +8,11 @@
 #' which is much faster than autodiff for large models. `H` and `logml` use
 #' one autodiff Hessian at the optimum.
 #'
+#' Design models so that the unconstrained posterior standard deviations of the
+#' outer parameters are close to 1. `nlminb()` is not unit-free: its first step
+#' assumes this scale, and with much smaller standard deviations it can stop
+#' short of the optimum. Check `converged` after every fit.
+#'
 #' @param stan_file Path to a `.stan` file.
 #' @param data Named list, JSON string or path to a `.json` file. Wrap
 #'   length-one arrays in `I()` so they stay arrays in the JSON.
@@ -30,7 +35,10 @@
 #'   `logml` (L at the optimum, without constants), `gradient` (dL/domega at
 #'   the optimum), `H`, `outer_hessian` (-d2L/domega2),
 #'   `outer_vcov` and `outer_se` (all `NA`, with a warning, if `outer_hessian`
-#'   is not positive definite), `converged`, `counts` (inner solves, failed
+#'   is not positive definite), `converged` (`TRUE` if `sqrt(g' V g)` is below
+#'   `1e-3`, with `g` the `gradient` and `V` the `outer_vcov`, so the optimum is
+#'   within about `1e-3` standard deviations; otherwise `FALSE`, with a warning,
+#'   including when `outer_vcov` is not available), `counts` (inner solves, failed
 #'   solves and approximate gradient evaluations), the `nlminb` result as
 #'   `opt`, and the
 #'   `model` and `inner_control` used.
@@ -72,10 +80,6 @@ fit_model <- function(model, outer, inner_control = list(),
     stop("Inner solve failed at the outer optimum: ", inner_sol$message)
   }
   
-  if (opt$convergence != 0) {
-    warning("Outer optimiser did not converge: ", opt$message)
-  }
-
   theta <- stats::setNames(inner_sol$theta, names_unc)
   outer_names <- names_unc[outer_idx]
   
@@ -88,6 +92,17 @@ fit_model <- function(model, outer, inner_control = list(),
     outer_steps(inner_sol_exact, inner_idx, outer_idx,
                 inner_settings(inner_control)$outer_step)
   )
+
+  # nlminb's own code is unreliable here: it reports success when it stops short
+  # of the optimum and false convergence when values are correct.
+  distance <- sqrt(sum(gradient * (uncertainty$vcov %*% gradient)))
+  converged <- is.finite(distance) && distance < 1e-3
+  if (!converged) {
+    warning("The outer optimiser stopped away from the optimum, or this could ",
+            "not be checked (nlminb: ", opt$message, "). Consider rescaling the ",
+            "outer parameters so that their unconstrained posterior standard ",
+            "deviations are close to 1.", call. = FALSE)
+  }
 
   structure(
     list(
@@ -102,7 +117,7 @@ fit_model <- function(model, outer, inner_control = list(),
       outer_hessian = uncertainty$hessian,
       outer_vcov = uncertainty$vcov,
       outer_se = sqrt(diag(uncertainty$vcov)),
-      converged = opt$convergence == 0,
+      converged = converged,
       counts = objective$counts(),
       opt = opt,
       model = model,

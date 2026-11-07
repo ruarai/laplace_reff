@@ -52,6 +52,32 @@ test_that("outer standard errors do not depend on the outer units", {
   }
 })
 
+test_that("a fit that stops short of the optimum is not converged", {
+  expect_warning(fit <- fit_model(rescale_outer(1e-5), c("m", "s")),
+                 "stopped away from the optimum")
+  expect_false(fit$converged)
+})
+
+test_that("a fit without outer_vcov is not converged", {
+  warnings <- capture_warnings(fit <- fit_model(rescale_outer(1e-6), c("m", "s")))
+  expect_match(warnings, "stopped away from the optimum", all = FALSE)
+  expect_true(anyNA(fit$outer_vcov))
+  expect_false(fit$converged)
+})
+
+test_that("mixed outer units that stop short are not converged", {
+  model <- rescaled_model(poisson_mock(y), c(rep(1, n), 1e-5, 1))
+  expect_false(fit_quietly(model)$converged)
+})
+
+test_that("correct fits are converged whatever nlminb reports", {
+  reference <- fit_quietly(poisson_mock(y))
+  fit <- fit_model(rescale_outer(1e6), c("m", "s"))
+  expect_equal(fit$opt$convergence, 1)
+  expect_true(fit$converged)
+  expect_equal(fit$outer * 1e6, reference$outer, tolerance = 1e-5)
+})
+
 test_that("the Newton stop is the distance to the mode", {
   # Gradients here are tiny, so max(abs(g)) < tol would stop far from the mode.
   scale <- 1e-6
@@ -60,6 +86,53 @@ test_that("the Newton stop is the distance to the mode", {
   sol <- inner_newton(model, theta, 1:n)
   mode <- inner_newton(poisson_mock(y), theta, 1:n, tol = 1e-10)
   expect_equal(sol$theta[1:n] * scale, mode$theta[1:n], tolerance = 1e-7)
+})
+
+test_that("Newton from an indefinite Hessian does not depend on the units", {
+  units <- list(c(1, 1), c(1e-3, 1e-3), c(1e-6, 1e-6), c(1e-8, 1e-8),
+                c(1e3, 1e3), c(1e6, 1e6), c(1, 1e-4), c(1e-5, 1e5),
+                c(1e-6, 1e6), c(1e6, 1e-6))
+  for (d in units) {
+    model <- rescaled_model(cauchy_pair_mock(), c(d, 1))
+    sol <- inner_newton(model, c(c(3, 2.5) / d, 0), 1:2)
+    expect_true(sol$converged)
+    expect_lt(sol$iter, 15)
+    expect_equal(sol$theta[1:2] * d, c(0, 0), tolerance = 1e-6)
+  }
+})
+
+test_that("damped directions rescale with the parameters", {
+  H <- matrix(c(-2, 1, 1, 3), 2)
+  g <- c(1, -2)
+  d <- c(1e-5, 1e4)
+  base <- damped_direction(H, g)
+  scaled <- damped_direction(H * outer(d, d), g * d)
+  expect_equal(scaled$step * d, base$step)
+  expect_equal(scaled$distance, base$distance)
+})
+
+test_that("a damped direction goes uphill", {
+  H <- matrix(c(-2, 1, 1, 3), 2)
+  g <- c(1, -2)
+  expect_gt(sum(g * damped_direction(H, g)$step), 0)
+})
+
+test_that("a small gradient alone is not a stationary point", {
+  # Gradients at the start are below tol in these units, but H is indefinite
+  # there. The steps are given because 1e-7 is lost to rounding at 3e9.
+  d <- c(1e-10, 1e-10)
+  model <- rescaled_model(cauchy_pair_mock(), c(d, 1))
+  sol <- inner_newton(model, c(3e10, 2.5e10, 0), 1:2, steps = 1e3)
+  expect_true(sol$converged)
+})
+
+test_that("a damped direction handles a zero Hessian", {
+  direction <- damped_direction(matrix(0, 2, 2), c(1, -2))
+  expect_equal(direction$step, c(1, -2))
+})
+
+test_that("a Hessian that cannot be scaled fails the solve", {
+  expect_null(damped_direction(matrix(c(1e-300, 1e300, 1e300, 1e-300), 2), c(1, 1)))
 })
 
 test_that("Hessian steps carry over to the next solve", {
