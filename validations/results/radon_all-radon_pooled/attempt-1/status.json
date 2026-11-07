@@ -1,0 +1,28 @@
+{
+  "posterior": "radon_all-radon_pooled",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.519,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.0254296245173954,
+      "worst_sd_ratio": 0.950150262488906,
+      "worst_w1": 0.0574545632802704
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0303800854783499,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.799123589368971
+    }
+  }
+}

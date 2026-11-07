@@ -1,0 +1,6 @@
+{
+  "outer": ["sigma"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Flat priors, linear-Gaussian model: given sigma the betas are exactly Gaussian, so the Laplace is exact in beta and only sigma needs optimising. Risks: unconstrained log-sigma posterior SD is about 1/sqrt(2*(N-7)) ~ 0.11, well below 1, so nlminb may stop short (convergence flag); start at log sigma=0 (sigma=1) is probably far from the mode (residual sd likely ~0.3-0.4). Skewed sigma marginal per manifest; Laplace on the beta side is exact but the outer is plug-in/Laplace-ish so sigma tails may be off."
+}

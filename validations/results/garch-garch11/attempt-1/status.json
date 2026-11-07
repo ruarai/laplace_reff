@@ -1,0 +1,28 @@
+{
+  "posterior": "garch-garch11",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.348,
+  "labels": {
+    "corrected": {
+      "mean_sd": "poor",
+      "w1": "acceptable",
+      "worst_abs_mean_err": 0.377989505851257,
+      "worst_sd_ratio": 1.14042056977039,
+      "worst_w1": 0.37796730308678
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.336313958789307,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.842119704006144
+    }
+  }
+}

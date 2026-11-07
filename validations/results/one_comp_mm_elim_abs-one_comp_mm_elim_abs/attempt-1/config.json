@@ -1,0 +1,1 @@
+{"outer": ["sigma"], "inner_control": {}, "outer_control": {}, "rationale": "Recorded by the main session after the subagent stopped at prepare.sh, so the compile failure is logged by the harness. The choice of outer does not affect it."}

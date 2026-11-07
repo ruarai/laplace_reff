@@ -1,0 +1,28 @@
+{
+  "posterior": "eight_schools-eight_schools_noncentered",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.447,
+  "labels": {
+    "corrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.536241132432609,
+      "worst_sd_ratio": 1.70922511978232,
+      "worst_w1": 0.536246075145858
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0567149637550291,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.758011351438348
+    }
+  }
+}

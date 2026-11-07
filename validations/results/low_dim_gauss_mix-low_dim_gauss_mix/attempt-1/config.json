@@ -1,0 +1,6 @@
+{
+  "outer": ["sigma.1", "sigma.2"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Scales given which the means and mixing weight are roughly Gaussian with N=1000. Risks: posterior SDs of log sigma are ~0.03-0.05, far below 1, so nlminb may stop short; zero init puts mu=(0,1) and sigma=1 with data bimodal near -3 and 3, so the inner mode may be a poor or label-swapped local optimum; mixture posterior is not Gaussian in mu if components overlap."
+}

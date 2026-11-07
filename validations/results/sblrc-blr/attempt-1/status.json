@@ -1,0 +1,28 @@
+{
+  "posterior": "sblrc-blr",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.459,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.0553170773614392,
+      "worst_sd_ratio": 0.959666929532467,
+      "worst_w1": 0.0627364770584742
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.101467323060212,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.792927226421366
+    }
+  }
+}

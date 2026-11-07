@@ -1,0 +1,28 @@
+{
+  "posterior": "diamonds-diamonds",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.787,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.0706846839669712,
+      "worst_sd_ratio": 1.04614179771969,
+      "worst_w1": 0.0751629697920726
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0540717139158686,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.800382009004001
+    }
+  }
+}

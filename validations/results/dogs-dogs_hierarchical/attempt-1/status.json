@@ -1,0 +1,28 @@
+{
+  "posterior": "dogs-dogs_hierarchical",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.436,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.067963094979701,
+      "worst_sd_ratio": 0.976008801624148,
+      "worst_w1": 0.0688144150809397
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0422714758642982,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.801626272276715
+    }
+  }
+}

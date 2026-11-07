@@ -1,0 +1,6 @@
+{
+  "outer": ["rho", "alpha"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Given the GP hyperparameters rho and alpha, f_tilde is a standard-normal prior times a Poisson-log likelihood, so close to Gaussian (counts are largish). Only 2 outer params. Risks: rho prior gamma(25,4) has mean 6.25 and sd ~1.25, so log rho has SD ~0.2 (well below 1) and optimiser starts at log rho=0 (rho=1), about 1.8 log units from the mode; alpha is a half-normal with skewed posterior on log scale. Weak identification of alpha vs f_tilde scale may give skewed outer marginals; Laplace on f_tilde with near-singular cov (1e-10 jitter) could be ill-conditioned at small rho."
+}

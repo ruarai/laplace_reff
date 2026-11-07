@@ -1,0 +1,28 @@
+{
+  "posterior": "arma-arma11",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.348,
+  "labels": {
+    "corrected": {
+      "mean_sd": "acceptable",
+      "w1": "good",
+      "worst_abs_mean_err": 0.133412840658206,
+      "worst_sd_ratio": 0.945791803922196,
+      "worst_w1": 0.133607721803968
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.173719490715419,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.800259279247301
+    }
+  }
+}

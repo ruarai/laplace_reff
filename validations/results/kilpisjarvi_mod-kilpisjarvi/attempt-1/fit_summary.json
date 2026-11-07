@@ -1,0 +1,33 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": "sigma",
+  "elapsed_seconds": 0.411,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 3.86570106946333e-09,
+  "n_unconstrained": 3,
+  "outer": {
+    "sigma": 0.110870416194332
+  },
+  "outer_se": {
+    "sigma": 0.0920264884887681
+  },
+  "gradient": {
+    "sigma": -4.20063954731376e-08
+  },
+  "logml": -43.5840575490128,
+  "counts": {
+    "solves": 14,
+    "failures": 0,
+    "gradients": 220
+  },
+  "nlminb": {
+    "message": "relative convergence (4)",
+    "convergence": 0,
+    "iterations": 7,
+    "evaluations": {
+      "function": 9,
+      "gradient": 7
+    }
+  }
+}

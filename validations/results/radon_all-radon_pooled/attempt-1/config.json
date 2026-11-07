@@ -1,0 +1,2 @@
+{"outer":["sigma_y"],"inner_control":{},"outer_control":{},
+"rationale":"Alpha and beta enter linearly with Gaussian likelihood, so given sigma_y the inner posterior is exactly Gaussian and Laplace is exact. sigma_y is the only sensible outer parameter. Risk: with N=12573 the unconstrained SD of log(sigma_y) is about 0.006, far below the assumed 1, so nlminb may stop short (converged flag); start at log sigma=0 is also probably near the optimum (sigma ~0.8) but the scale mismatch is the concern."}

@@ -1,0 +1,2 @@
+{"outer":["sigma_y"],"inner_control":{},"outer_control":{},
+"rationale":"Linear-Gaussian model: given sigma_y, (alpha,beta) is exactly Gaussian, so only sigma_y needs to be outer. Risk: N~919 so the unconstrained SD of log sigma_y is about 1/sqrt(2N)=0.02, far below 1, and it starts at 0 (sigma=1) while the likely optimum is near sigma~0.8; nlminb's first step may stop short (the docs warn about this). Prior sigma~N+(0,1) is weak vs data."}

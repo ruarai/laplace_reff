@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Conditionally Gaussian in beta given sigma (linear model), so beta inner and sigma outer. Risks: unconstrained sd of log sigma is about 1/sqrt(2*434)=0.034, far below 1, and the start at log sigma=0 is far from the likely optimum near log(18)=2.9, so nlminb may stop short. Unscaled covariates (mom_iq ~100) make beta strongly correlated, which the inner Newton solve should handle since the problem is quadratic."}

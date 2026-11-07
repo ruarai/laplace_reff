@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Linear regression with flat priors: beta is exactly Gaussian given sigma, so Laplace is exact for inner. sigma is the only natural outer. Risk: posterior SD of log sigma is about 1/sqrt(2N), far below 1 (N large), and the start at 0 (sigma=1) is off the optimum, so nlminb may stop short or flag non-convergence."}

@@ -1,0 +1,2 @@
+{"outer":["alpha0","alpha1","beta1"],"inner_control":{},"outer_control":{},
+"rationale":"mu is a location parameter and likely near-Gaussian given the volatility parameters, so it stays inner. The three volatility parameters interact nonlinearly and are bounded (alpha1 and beta1 near boundaries per the manifest), so they are outer. Risks: unconstrained SDs of alpha0/alpha1/beta1 may differ from 1 (alpha0 on log scale may be wider), the start at zero (alpha0=1, alpha1=0.5, beta1=0.25) may be far from the mode, and the posterior may be skewed near boundaries."}

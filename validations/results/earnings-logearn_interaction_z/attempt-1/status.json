@@ -1,0 +1,28 @@
+{
+  "posterior": "earnings-logearn_interaction_z",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.429,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.0358962098227014,
+      "worst_sd_ratio": 1.05781561408795,
+      "worst_w1": 0.0569352173373113
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0237006321278989,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.795773358912862
+    }
+  }
+}

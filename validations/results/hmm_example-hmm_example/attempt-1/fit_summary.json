@@ -1,0 +1,36 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": ["theta1.1", "theta2.1"],
+  "elapsed_seconds": 0.333,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 2.43411826151803e-06,
+  "n_unconstrained": 4,
+  "outer": {
+    "theta1.1": 0.49003255838596,
+    "theta2.1": -1.7951822098358
+  },
+  "outer_se": {
+    "theta1.1": 0.327331072997239,
+    "theta2.1": 0.299863693779359
+  },
+  "gradient": {
+    "theta1.1": 7.35143039850777e-06,
+    "theta2.1": -1.22138759446616e-06
+  },
+  "logml": -174.097910440611,
+  "counts": {
+    "solves": 16,
+    "failures": 0,
+    "gradients": 302
+  },
+  "nlminb": {
+    "message": "relative convergence (4)",
+    "convergence": 0,
+    "iterations": 8,
+    "evaluations": {
+      "function": 9,
+      "gradient": 9
+    }
+  }
+}

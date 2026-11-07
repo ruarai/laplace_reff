@@ -1,0 +1,19 @@
+Error in compile_model(lib, stanc_args, make_args) : 
+  Compilation failed with error code 2
+output:
+make: Entering directory '/home/ubuntu/.bridgestan/bridgestan-2.9.0'
+
+--- Translating Stan model to C++ code ---
+./bin/stanc --include-paths=. --include-paths=/pvol/source/lapland/validations/build/models/one_comp_mm_elim_abs --o=/pvol/source/lapland/validations/build/models/one_comp_mm_elim_abs/one_comp_mm_elim_abs.hpp /pvol/source/lapland/validations/build/models/one_comp_mm_elim_abs/one_comp_mm_elim_abs.stan
+Warning in '/pvol/source/lapland/validations/build/models/one_comp_mm_elim_abs/one_comp_mm_elim_abs.stan', line 54, column 8 to column 25:
+    integrate_ode_bdf is deprecated and will be removed in Stan 3.0. Use
+    ode_bdf instead. The new interface is slightly different, see:
+    https://mc-stan.org/users/documentation/case-studies/convert_odes.html
+
+--- Compiling C++ code ---
+g++ -std=c++17 -pthread -D_REENTRANT -Wno-sign-compare -Wno-ignored-attributes -Wno-class-memaccess      -I ./stan/lib/stan_math/lib/tbb_2020.3/inclu
+Calls: build_library ... withCallingHandlers -> <Anonymous> -> initialize -> compile_model
+In addition: Warning message:
+In compile_model(lib, stanc_args, make_args) :
+  BridgeStan error message too long to fully display. Consider increasing options(warning.length)
+Execution halted

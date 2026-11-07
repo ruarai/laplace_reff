@@ -1,0 +1,6 @@
+{
+  "outer": ["sigma"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Model is linear regression with flat priors, so beta is exactly Gaussian given sigma; sigma is the only sensible outer parameter. Risks: earnings are in raw dollars so log sigma is probably ~10 while init is 0, and its posterior SD is about 1/sqrt(2N), far below 1, so nlminb may stop short (false convergence). Beta (intercept/slope on raw inch scale) has huge scale and strong correlation, which may stress the inner solver at the start."
+}

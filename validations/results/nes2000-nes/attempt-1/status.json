@@ -1,0 +1,28 @@
+{
+  "posterior": "nes2000-nes",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.478,
+  "labels": {
+    "corrected": {
+      "mean_sd": "good",
+      "w1": "good",
+      "worst_abs_mean_err": 0.0584100282080252,
+      "worst_sd_ratio": 1.05185599885502,
+      "worst_w1": 0.0626068561139904
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0433099744045323,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.796606895279998
+    }
+  }
+}

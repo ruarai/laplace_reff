@@ -1,0 +1,10 @@
+{
+  "mean_sd": {
+    "good":       {"abs_mean_err": 0.1,  "sd_ratio": [0.9, 1.1]},
+    "acceptable": {"abs_mean_err": 0.25, "sd_ratio": [0.75, 1.33]}
+  },
+  "w1": {
+    "good":       {"w1": 0.15},
+    "acceptable": {"w1": 0.4}
+  }
+}

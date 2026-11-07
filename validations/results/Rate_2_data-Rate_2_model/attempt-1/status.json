@@ -1,0 +1,28 @@
+{
+  "posterior": "Rate_2_data-Rate_2_model",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.405,
+  "labels": {
+    "corrected": {
+      "mean_sd": "acceptable",
+      "w1": "good",
+      "worst_abs_mean_err": 0.141922278783778,
+      "worst_sd_ratio": 0.942212125781038,
+      "worst_w1": 0.142101593692568
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.0804089811199888,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.811814907822548
+    }
+  }
+}

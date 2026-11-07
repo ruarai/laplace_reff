@@ -1,0 +1,6 @@
+{
+  "outer": ["sdgp_1","lscale_1","sdgp_sigma_1","lscale_sigma_1"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Four GP hyperparameters (log sd and log length scale for mean and sigma GPs) outer; intercepts and the 60 non-centred zgp weights inner (conditionally near Gaussian given hyperparameters, except the sigma-GP part enters through exp). Risks: all start at 0 (sd=1, lscale=1) which may be far from the optimum (sdgp prior scale 36, lscale prior inv-gamma favouring small values); posterior SDs of log lscale and log sdgp_sigma may be wide or non-unit; weakly identified length scales; sigma GP makes inner conditional non-Gaussian."
+}

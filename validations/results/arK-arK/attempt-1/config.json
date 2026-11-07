@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Model is linear-Gaussian in alpha and beta given sigma, so integrating them out with sigma outer is near exact. Sigma on log scale: posterior SD roughly 1/sqrt(2n), which is well below 1 for n large, so risk is nlminb stopping short from the start at log sigma=0 (sigma=1) if the true sigma differs much; also the half-Cauchy prior is weak."}

@@ -1,0 +1,28 @@
+{
+  "posterior": "mesquite-logmesquite_logvas",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.424,
+  "labels": {
+    "corrected": {
+      "mean_sd": "acceptable",
+      "w1": "good",
+      "worst_abs_mean_err": 0.113045780703833,
+      "worst_sd_ratio": 0.964663095836948,
+      "worst_w1": 0.112968582132761
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.172317684138898,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.784811718296464
+    }
+  }
+}

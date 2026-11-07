@@ -1,0 +1,2 @@
+{"outer":["beta.1"],"inner_control":{},"outer_control":{},
+"rationale":"Model is a 3-coefficient logistic regression with a near-flat normal(0,100) prior, so there is no natural hyperparameter. Chose the intercept beta.1 as outer and beta.2, beta.3 inner. Risks: posterior SD of the intercept is probably well under 1 (750 binary observations), so nlminb's first step from 0 may stop short; the inner and outer are strongly correlated (counts covary), so the split gives little separation; the likelihood is exactly Gaussian-ish only approximately, so the Laplace is approximate."}

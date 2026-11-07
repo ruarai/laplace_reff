@@ -1,0 +1,6 @@
+{
+  "outer": ["a"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Only two parameters, so one must be inner. a (shock-count decay) is outer, b inner. Both are in (0,1) with a flat prior, so unconstrained logit scale. Risks: a and b are likely correlated (little separation), so the inner Gaussian approximation for b given a may be skewed near the upper bound; posterior SD of logit(a) may be well below 1 given 30 dogs x 25 trials, so nlminb's first step from 0 may be too coarse."
+}

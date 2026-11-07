@@ -1,0 +1,2 @@
+{"outer":["alpha","sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Only 3 params, no latent field. rho has gamma(25,4) prior (sd ~0.2 on log scale, much narrower than 1), so leave it inner where scale doesn't matter. alpha and sigma have weak half-normal priors, likely log-scale SD near 1 but N=11 so heavy tails/skew and weak identification of alpha vs sigma; expect poor Gaussian inner fit for rho given alpha,sigma is mild, risk of nonconvergence if the outer Hessian is flat."}

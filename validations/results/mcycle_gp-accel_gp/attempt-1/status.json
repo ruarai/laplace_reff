@@ -1,0 +1,28 @@
+{
+  "posterior": "mcycle_gp-accel_gp",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 2.073,
+  "labels": {
+    "corrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.417827791343568,
+      "worst_sd_ratio": 0.512049816750895,
+      "worst_w1": 0.417859090974757
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.546816352611756,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.784844666548852
+    }
+  }
+}

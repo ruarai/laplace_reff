@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Model is linear-Gaussian, so given sigma alpha and beta are exactly Gaussian: Laplace is exact for the inner block. Only sigma is outer. Risks: log(sigma) posterior SD is about 1/sqrt(2*62) ~ 0.09, well below 1, so nlminb may stop short (convergence check may fail); start sigma=1 vs likely ~1.1-1.2 is close. Inner block is badly conditioned: x ~ 4000 uncentred, alpha and beta almost perfectly correlated, scales differ by ~4000x, so the inner Newton solver may struggle."}

@@ -1,0 +1,33 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": "theta1",
+  "elapsed_seconds": 0.405,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 0,
+  "n_unconstrained": 2,
+  "outer": {
+    "theta1": 0
+  },
+  "outer_se": {
+    "theta1": 0.577350278812182
+  },
+  "gradient": {
+    "theta1": 0
+  },
+  "logml": -16.4463508131225,
+  "counts": {
+    "solves": 6,
+    "failures": 0,
+    "gradients": 43
+  },
+  "nlminb": {
+    "message": "both X-convergence and relative convergence (5)",
+    "convergence": 0,
+    "iterations": 1,
+    "evaluations": {
+      "function": 1,
+      "gradient": 1
+    }
+  }
+}

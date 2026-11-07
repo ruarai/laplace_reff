@@ -1,0 +1,36 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": ["sigma.1", "sigma.2"],
+  "elapsed_seconds": 0.455,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 4.28521155433714e-08,
+  "n_unconstrained": 5,
+  "outer": {
+    "sigma.1": 0.0268822569849685,
+    "sigma.2": 0.0210234779039841
+  },
+  "outer_se": {
+    "sigma.1": 0.0304075691602579,
+    "sigma.2": 0.039325143418603
+  },
+  "gradient": {
+    "sigma.1": -7.58564553393626e-07,
+    "sigma.2": -9.85181952462e-07
+  },
+  "logml": -2114.92857513706,
+  "counts": {
+    "solves": 20,
+    "failures": 0,
+    "gradients": 522
+  },
+  "nlminb": {
+    "message": "relative convergence (4)",
+    "convergence": 0,
+    "iterations": 7,
+    "evaluations": {
+      "function": 13,
+      "gradient": 7
+    }
+  }
+}

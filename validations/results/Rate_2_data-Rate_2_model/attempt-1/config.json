@@ -1,0 +1,2 @@
+{"outer":["theta1"],"inner_control":{},"outer_control":{},
+"rationale":"Two independent bounded rates, k=5/10 and 7/10. One must be inner; theta1 outer. Logit-scale posterior SDs about 0.6-0.7 (Beta(6,6), Beta(8,4)), near 1, start at 0 is close to the mode of theta1 (logit 0). Risks: inner is skewed on logit scale (Beta(8,4)), so Laplace for theta2 is approximate with N=10; outer 1-D with tiny data."}

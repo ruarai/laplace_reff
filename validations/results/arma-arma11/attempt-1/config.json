@@ -1,0 +1,6 @@
+{
+  "outer": ["phi", "theta"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "phi and theta enter the likelihood nonlinearly (err recursion) and are strongly correlated, so they are the non-Gaussian part; mu and log sigma are close to Gaussian given them, so they go inner. Risks: posterior SDs of phi/theta with T~200 are probably ~0.1 or less (not ~1), so nlminb's first step from 0 may be poorly scaled and stop short; the phi/theta ridge near phi=-theta may make the outer Hessian ill-conditioned; the posterior may be non-Gaussian in the outer pair near the stationarity/invertibility boundary."
+}

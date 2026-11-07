@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Model is linear-Gaussian in beta given sigma, so Laplace in beta is exact; sigma is the only sensible outer. Risk: N~1000 so posterior SD of log sigma is ~0.02, far below 1, so nlminb may stop short of the optimum (false convergence); also beta intercept ~9-10 vs init 0 is inner so should be fine."}

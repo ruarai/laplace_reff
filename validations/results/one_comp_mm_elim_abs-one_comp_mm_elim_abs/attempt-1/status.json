@@ -1,0 +1,13 @@
+{
+  "posterior": "one_comp_mm_elim_abs-one_comp_mm_elim_abs",
+  "attempt": 1,
+  "outcome": "compile_error",
+  "draws": "not_run",
+  "exit_codes": {
+    "compile": 1,
+    "fit": -1,
+    "draws": -1
+  },
+  "fit_seconds": null,
+  "labels": []
+}

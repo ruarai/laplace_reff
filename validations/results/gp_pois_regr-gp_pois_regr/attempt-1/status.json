@@ -1,0 +1,28 @@
+{
+  "posterior": "gp_pois_regr-gp_pois_regr",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.486,
+  "labels": {
+    "corrected": {
+      "mean_sd": "acceptable",
+      "w1": "acceptable",
+      "worst_abs_mean_err": 0.171479769695295,
+      "worst_sd_ratio": 0.958272388212488,
+      "worst_w1": 0.171759846674667
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.217901665134335,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.803637087282841
+    }
+  }
+}

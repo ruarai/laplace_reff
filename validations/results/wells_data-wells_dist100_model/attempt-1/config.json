@@ -1,0 +1,2 @@
+{"outer":["beta.1"],"inner_control":{},"outer_control":{},
+"rationale":"Flat priors, 2-parameter logistic regression; alpha must be inner so beta.1 is the only choice (or vice versa). Posterior is near Gaussian. Risk: unconstrained posterior SD of beta.1 is roughly 0.1 (N=3020, dist100 SD ~0.4), well below 1, so nlminb may stop short; alpha SD is also ~0.1. Start at 0 is a few SDs from the mode."}

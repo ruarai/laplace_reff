@@ -1,0 +1,28 @@
+{
+  "posterior": "hmm_example-hmm_example",
+  "attempt": 1,
+  "outcome": "converged",
+  "draws": "ok",
+  "exit_codes": {
+    "compile": 0,
+    "fit": 0,
+    "draws": 0
+  },
+  "fit_seconds": 0.333,
+  "labels": {
+    "corrected": {
+      "mean_sd": "acceptable",
+      "w1": "acceptable",
+      "worst_abs_mean_err": 0.196651366301115,
+      "worst_sd_ratio": 1.08247056518684,
+      "worst_w1": 0.196666085765065
+    },
+    "uncorrected": {
+      "mean_sd": "poor",
+      "w1": "poor",
+      "worst_abs_mean_err": 0.115641801540619,
+      "worst_sd_ratio": 0,
+      "worst_w1": 0.804783389083183
+    }
+  }
+}

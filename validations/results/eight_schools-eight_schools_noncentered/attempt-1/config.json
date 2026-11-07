@@ -1,0 +1,6 @@
+{
+  "outer": ["tau"],
+  "inner_control": {},
+  "outer_control": {},
+  "rationale": "Given tau, theta_trans and mu are exactly Gaussian (linear-Gaussian model), so the inner Laplace is exact and only log tau is non-Gaussian. Risks: log tau posterior is skewed with a long left tail (funnel, tau near 0), SD probably >1 and possibly a flat or boundary-like mode at very negative log tau; start at log tau=0 (tau=1) is reasonable. Marginal-mode of a skewed log tau means corrected draws from a Gaussian at the optimum may mis-represent tau tails."
+}

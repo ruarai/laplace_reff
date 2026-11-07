@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Linear-Gaussian model: given sigma, b and Intercept are exactly Gaussian, so the Laplace is exact in the inner block. sigma is the only scale parameter. Risks: N is large so the SD of log(sigma) is about 1/sqrt(2N), far below 1, so nlminb may stop short of the optimum (first step assumes SD near 1); start at log sigma=0 may be far from optimum; strongly correlated, ill-conditioned inner Hessian (collinear X) may slow or break the inner Newton solve."}

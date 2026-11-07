@@ -1,0 +1,13 @@
+{
+  "posterior": "hudson_lynx_hare-lotka_volterra",
+  "attempt": 1,
+  "outcome": "compile_error",
+  "draws": "not_run",
+  "exit_codes": {
+    "compile": 1,
+    "fit": -1,
+    "draws": -1
+  },
+  "fit_seconds": null,
+  "labels": []
+}

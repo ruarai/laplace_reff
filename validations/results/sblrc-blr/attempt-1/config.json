@@ -1,0 +1,2 @@
+{"outer":["sigma"],"inner_control":{},"outer_control":{},
+"rationale":"Given sigma the beta are exactly Gaussian (linear-Gaussian, normal priors), so the Laplace is exact conditional on sigma and only sigma needs to be outer. Risks: log sigma posterior SD is about 1/sqrt(2N)=0.07 with N=100, far below 1, so nlminb may stop short; start at log sigma=0 (sigma=1) is far from the likely sigma (data scale ~100s) and the correlated design with unscaled X (entries ~100s) makes beta scales ~1e-2 or smaller, so inner steps start badly scaled."}

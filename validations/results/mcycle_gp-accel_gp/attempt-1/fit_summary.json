@@ -1,0 +1,42 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": ["sdgp_1", "lscale_1", "sdgp_sigma_1", "lscale_sigma_1"],
+  "elapsed_seconds": 2.073,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 0.000121250488594536,
+  "n_unconstrained": 66,
+  "outer": {
+    "sdgp_1": 3.69721749670539,
+    "lscale_1": -2.46138637992412,
+    "sdgp_sigma_1": 1.02563149033274,
+    "lscale_sigma_1": -4.48817513750056
+  },
+  "outer_se": {
+    "sdgp_1": 0.236727438422949,
+    "lscale_1": 0.141863635562533,
+    "sdgp_sigma_1": 0.487982320269512,
+    "lscale_sigma_1": 0.82025210927798
+  },
+  "gradient": {
+    "sdgp_1": -9.20344518124949e-05,
+    "lscale_1": 0.000142479171007182,
+    "sdgp_sigma_1": 0.000198393219328352,
+    "lscale_sigma_1": 0.000227179306770964
+  },
+  "logml": -659.797895837957,
+  "counts": {
+    "solves": 47,
+    "failures": 0,
+    "gradients": 54307
+  },
+  "nlminb": {
+    "message": "relative convergence (4)",
+    "convergence": 0,
+    "iterations": 25,
+    "evaluations": {
+      "function": 35,
+      "gradient": 25
+    }
+  }
+}

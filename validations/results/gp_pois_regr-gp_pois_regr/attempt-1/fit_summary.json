@@ -1,0 +1,36 @@
+{
+  "package_sha": "754026a5a69a69c687db3d40927b9b295e569c21",
+  "outer_requested": ["rho", "alpha"],
+  "elapsed_seconds": 0.486,
+  "warnings": [],
+  "converged": true,
+  "distance_sd": 1.11869809415075e-06,
+  "n_unconstrained": 13,
+  "outer": {
+    "rho": 1.74147532680218,
+    "alpha": 1.01108695811749
+  },
+  "outer_se": {
+    "rho": 0.118695940148272,
+    "alpha": 0.274042545355957
+  },
+  "gradient": {
+    "rho": 9.83534605047964e-06,
+    "alpha": -4.26765399019757e-07
+  },
+  "logml": 961.235526373146,
+  "counts": {
+    "solves": 19,
+    "failures": 0,
+    "gradients": 2916
+  },
+  "nlminb": {
+    "message": "relative convergence (4)",
+    "convergence": 0,
+    "iterations": 8,
+    "evaluations": {
+      "function": 11,
+      "gradient": 9
+    }
+  }
+}
